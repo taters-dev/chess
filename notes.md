@@ -12,11 +12,21 @@
 ### Monday, Jan 12
 
 #### First Commit
-Read through the project files and I feel the most logical place to start is
-with ChessPosition.java because it is needed for all the rest of the classes.
+    Read through the project files and I feel the most logical place to start is
+    with ChessPosition.java because it is needed for all the rest of the classes.
 
-<span style="color: green;">[Passed test cases]</span> ChessPosition.java - 1/12 7:35 pm<br>
+    <span style="color: green;">[Passed test cases]</span> ChessPosition.java - 1/12 7:35 pm<br>
 
-- Simple Constructor and Getter methods
-- Struggled at first with overriding equals() and hashCode() however after reading the tips from the course github it was fine. 
+    - Simple Constructor and Getter methods
+    - Struggled at first with overriding equals() and hashCode() however after reading the tips from the course github it was fine.
+
+#### Second Commit
+    Realized that I need to include a piece object defaulted to null for every instance of ChessPositon. So I have made that change. Also added a getter method for the piece within ChessPosition class.
+    
+    - Added piece to ChessPosition constructor method
+    - Successfully built ChessBoard constructor method
+    - Code now passes Construct Empty ChessBoard testcase
+
+
+
 

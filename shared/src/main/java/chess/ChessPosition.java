@@ -11,10 +11,12 @@ import java.util.Objects;
 public class ChessPosition {
     private final int row;
     private final int col;
+    private final ChessPiece piece;
 
     public ChessPosition(int row, int col) {
         this.row = row;
         this.col = col;
+        this.piece = null;
     }
 
     /**
@@ -31,6 +33,10 @@ public class ChessPosition {
      */
     public int getColumn() {
         return col;
+    }
+
+    public ChessPiece getPiece(){
+        return piece;
     }
 
     @Override
