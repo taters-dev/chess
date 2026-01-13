@@ -27,6 +27,10 @@
     - Successfully built ChessBoard constructor method
     - Code now passes Construct Empty ChessBoard testcase
 
+#### Third Commit
+    Realized that I need to implement part of the ChessPiece class in order to fully implement the ChessBoard class as well.
+
+    - Successfully implemented Constructor and getter method for ChessPieces aside from pieceMoves
 
 
 
