@@ -11,7 +11,7 @@ import java.util.Objects;
 public class ChessPosition {
     private final int row;
     private final int col;
-    private final ChessPiece piece;
+    public ChessPiece piece;
 
     public ChessPosition(int row, int col) {
         this.row = row;
