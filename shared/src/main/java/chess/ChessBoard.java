@@ -10,7 +10,8 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] board;
+    private final ChessPiece[][] board;
+
 
     public ChessBoard() {
         this.board = new ChessPiece[8][8];
@@ -23,6 +24,9 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
+        int row = position.getRow();
+        int col = position.getColumn();
+        this.board[row - 1][col - 1] = piece;
         position.piece = piece;
     }
 
@@ -34,7 +38,23 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return position.getPiece();
+        int row = position.getRow();
+        int col = position.getColumn();
+        return this.board[row - 1][col - 1];
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ChessBoard{");
+        for (ChessPiece[] chessPieceArrays : this.board) {
+            for (ChessPiece chessPiece : chessPieceArrays) {
+                if (chessPiece == null) continue;
+                sb.append("["+chessPiece+"]");
+            }
+        }
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
@@ -42,20 +62,62 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        board = new ChessPiece[8][8];
+
+         /*
+          *     |r|n|b|q|k|b|n|r|
+          *     |p|p|p|p|p|p|p|p|
+          *     | | | | | | | | |
+          *     | | | | | | | | |
+          *     | | | | | | | | |
+          *     | | | | | | | | |
+          *     |P|P|P|P|P|P|P|P|
+          *     |R|N|B|Q|K|B|N|R|
+         */
+
+        //White Non Pawn Pieces
+        this.board[0][0] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+        this.board[0][1] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+        this.board[0][2] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+        this.board[0][3] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN);
+        this.board[0][4] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING);
+        this.board[0][5] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+        this.board[0][6] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+        this.board[0][7] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+
+        // White Pawns
+
+        for(int i = 0; i < 8; i++){
+            this.board[1][i] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+        }
+
+        // Black Pawns
+
+        for(int i = 0; i < 8; i++){
+            this.board[6][i] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+        }
+
+        // Black Non Pawn Pieces
+        this.board[7][0] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+        this.board[7][1] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+        this.board[7][2] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+        this.board[7][3] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
+        this.board[7][4] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+        this.board[7][5] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+        this.board[7][6] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+        this.board[7][7] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Objects.deepEquals(board, that.board);
+        return Objects.deepEquals(this.board, that.board);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(board);
+        return Arrays.deepHashCode(this.board);
     }
 }
