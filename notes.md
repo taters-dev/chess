@@ -3,7 +3,7 @@
 ## Work Flow
 ### Phase 0: Chess Moves
 #### 1. ChessPosition <span style="color: green;">[DONE]</span>
-#### 2. ChessBoard
+#### 2. ChessBoard <span style="color: green;">[DONE]</span>
 #### 3. ChessPiece
 #### 4. ChessMove
 
@@ -15,7 +15,7 @@
     Read through the project files and I feel the most logical place to start is
     with ChessPosition.java because it is needed for all the rest of the classes.
 
-    <span style="color: green;">[Passed test cases]</span> ChessPosition.java - 1/12 7:35 pm<br>
+<span style="color: green;">[Passed test cases]</span> ChessPosition.java - 1/12 7:35 pm<br>
 
     - Simple Constructor and Getter methods
     - Struggled at first with overriding equals() and hashCode() however after reading the tips from the course github it was fine.
@@ -35,5 +35,12 @@
 #### Fourth Commit:
     - Sucessfully implemented methods getPiece and addPiece in ChessBoard class. Having issues with HashCode and Equals Testing.
 
+#### Fifth Commit:
+    - Found my issue for ChessBoard I was not resetting the board to have all the pieces because I miss understood that it was to put all the pieces on the board. I fixed this and Now all test cases pass for ChessBoard class.
+
+<span style="color: green;">[Passed test cases]</span> ChessBoard.java - 1/12 10:51 pm<br>
+
+#### Sixth Commit
+    - Fixed typos
 
 
