@@ -68,4 +68,8 @@ public class ChessPieceTests extends EqualsTestingUtility<ChessPiece> {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ChessPieceTests{}";
+    }
 }

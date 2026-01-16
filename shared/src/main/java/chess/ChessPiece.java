@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
-    private PieceType type;
+    public PieceType type;
 
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
@@ -52,8 +52,37 @@ public class ChessPiece {
      *
      * @return Collection of valid moves
      */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition){
+        ChessPiece piece = board.getPiece(myPosition);
+        System.out.println((piece));
+        if(piece == null){
+            throw new RuntimeException("NULL");
+        }
+        if(piece.getPieceType() == PieceType.PAWN){
+            PawnPiece pawn = new PawnPiece(pieceColor);
+            return pawn.validMoves(board, myPosition);
+        }
+        else if(piece.getPieceType() == PieceType.ROOK){
+            RookPiece rook = new RookPiece(pieceColor);
+            return rook.validMoves(board, myPosition);
+        }
+        else if(piece.getPieceType() == PieceType.KNIGHT){
+            KnightPiece knight = new KnightPiece(pieceColor);
+            return knight.validMoves(board, myPosition);
+        }
+        else if(piece.getPieceType() == PieceType.BISHOP){
+            BishopPiece bishop = new BishopPiece(pieceColor);
+            return bishop.validMoves(board, myPosition);
+        }
+        else if(piece.getPieceType() == PieceType.QUEEN){
+            QueenPiece queen = new QueenPiece(pieceColor);
+            return queen.validMoves(board, myPosition);
+        }
+        else if(piece.getPieceType() == PieceType.KING){
+            KingPiece king = new KingPiece(pieceColor);
+            return king.validMoves(board, myPosition);
+        }
+        throw new RuntimeException("Didn't Match any piece");
     }
 
     @Override

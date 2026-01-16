@@ -24,7 +24,7 @@ public class ChessPosition {
      * 1 codes for the bottom row
      */
     public int getRow() {
-        return row;
+        return this.row;
     }
 
     /**
@@ -32,13 +32,12 @@ public class ChessPosition {
      * 1 codes for the left row
      */
     public int getColumn() {
-        return col;
+        return this.col;
     }
 
     public ChessPiece getPiece(){
-        return piece;
+        return this.piece;
     }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {

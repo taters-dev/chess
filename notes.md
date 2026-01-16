@@ -43,4 +43,6 @@
 #### Sixth Commit
     - Fixed typos
 
+#### Seventh Commit
+    - Got each piece class set up now just need to implement move logic for each separate piece. 
 
