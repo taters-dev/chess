@@ -11,6 +11,8 @@ public class KnightPiece {
 
     public Collection<ChessMove> validMoves(ChessBoard board, ChessPosition position){
         Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow();
+        int col = position.getColumn();
         return moves;
     }
 }

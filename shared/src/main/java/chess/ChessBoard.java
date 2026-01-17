@@ -43,20 +43,6 @@ public class ChessBoard {
         return this.board[row - 1][col - 1];
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ChessBoard{");
-        for (ChessPiece[] chessPieceArrays : this.board) {
-            for (ChessPiece chessPiece : chessPieceArrays) {
-                if (chessPiece == null) continue;
-                sb.append("["+chessPiece+"]");
-            }
-        }
-        sb.append("}");
-        return sb.toString();
-    }
-
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
@@ -119,5 +105,12 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(this.board);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessBoard{" +
+                "board=" + Arrays.toString(board) +
+                '}';
     }
 }

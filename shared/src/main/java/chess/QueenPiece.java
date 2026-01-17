@@ -13,6 +13,11 @@ public class QueenPiece {
 
     public Collection<ChessMove> validMoves(ChessBoard board, ChessPosition position){
         Collection<ChessMove> moves = new ArrayList<>();
+        RookPiece fakeRook = new RookPiece(color);
+        BishopPiece fakeBishop = new BishopPiece(color);
+
+        moves.addAll(fakeRook.validMoves(board, position));
+        moves.addAll(fakeBishop.validMoves(board, position));
         return moves;
     }
 }
