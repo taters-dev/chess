@@ -46,8 +46,11 @@
 #### Seventh Commit
     - Got each piece class set up now just need to implement move logic for each separate piece. 
 
-#### Eigth Commit
+#### Eighth Commit
     - Started with PawnPiece class realized it would be the most complicated so I implemented all others besides Knight and Pawn. 
     - Have a better understanding of how to make these classes work now so I hope that pawn will be easier than before. 
     - Finished King, Rook, Bishop, Queen
 
+#### Ninth Commit
+    - Finished moves for the KnightPiece class
+    - Passing all test Cases otuside of PawnMoveTests
