@@ -54,3 +54,8 @@
 #### Ninth Commit
     - Finished moves for the KnightPiece class
     - Passing all test Cases otuside of PawnMoveTests
+
+#### Tenth Commit
+    - Completed Phase 0
+    - Finished PawnPiece class
+    - ALl test cases are now passing
