@@ -24,7 +24,7 @@ public class ChessGame {
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        return teamTurn;
+        return this.teamTurn;
     }
 
     /**
@@ -76,6 +76,9 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece currPiece = this.board.getPiece(startPosition);
+        if (currPiece == null){
+            return null;
+        }
         return currPiece.pieceMoves(this.board, startPosition);
     }
 
