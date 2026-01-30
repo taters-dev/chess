@@ -68,3 +68,6 @@
 
 #### Second Commit
     - Working ChessGame constructor
+
+#### Third Commit
+    - Completed Getter and Setter methods for teamTurn
