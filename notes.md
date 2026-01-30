@@ -65,3 +65,6 @@
 
 #### First Commit
     - Copied starter code
+
+#### Second Commit
+    - Working ChessGame constructor

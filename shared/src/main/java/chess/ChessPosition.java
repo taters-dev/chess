@@ -35,10 +35,6 @@ public class ChessPosition {
         return this.col;
     }
 
-    /* public ChessPiece getPiece(){
-        return this.piece;
-    }
-     */
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
