@@ -59,3 +59,9 @@
     - Completed Phase 0
     - Finished PawnPiece class
     - ALl test cases are now passing
+
+
+#### Phase 1: Chess Game
+
+#### First Commit
+    - Copied starter code
