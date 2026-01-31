@@ -27,7 +27,6 @@ public class ChessBoard {
         int row = position.getRow();
         int col = position.getColumn();
         this.board[row - 1][col - 1] = piece;
-        position.piece = piece;
     }
 
     /**

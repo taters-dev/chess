@@ -71,3 +71,9 @@
 
 #### Third Commit
     - Completed Getter and Setter methods for teamTurn
+
+#### Fourth Commit
+    - Partially working moves method
+
+#### Fifth Commit
+    - Correctly implemented the isInCheck() method
