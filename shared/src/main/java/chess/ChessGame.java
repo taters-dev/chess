@@ -159,7 +159,12 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (!isInCheck(teamColor)){
+            return false;
+        }
+        else {
+            return mateHelper(teamColor);
+        }
     }
 
     /**
@@ -170,7 +175,32 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if(isInCheck(teamColor)){
+            return false;
+        }
+        else{
+            return mateHelper(teamColor);
+        }
+    }
+
+    public boolean mateHelper(TeamColor teamColor){
+        Collection<ChessMove> currMoves;
+        int numberOfMoves = 0;
+        ChessPosition currPos;
+        ChessPiece currPiece;
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                currPos = new ChessPosition(row + 1, col + 1);
+                currPiece = this.board.getPiece(currPos);
+                if (currPiece != null) {
+                    if (currPiece.getTeamColor() == teamColor) {
+                        currMoves = validMoves(currPos);
+                        numberOfMoves += currMoves.size();
+                    }
+                }
+            }
+        }
+        return numberOfMoves == 0;
     }
 
     /**

@@ -84,3 +84,7 @@
 #### Seventh Commit
     - Correctly Implemented validMoves() method
     - The issue was I was checking isInCheck() using teamTurn and not the color of the piece
+
+#### Eighth Commit
+    - Correctly implemented isInCheckMate() and isInStaleMate methods
+    - Logic of both methods were very similar so combined into one commit
