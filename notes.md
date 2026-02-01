@@ -88,3 +88,6 @@
 #### Eighth Commit
     - Correctly implemented isInCheckMate() and isInStaleMate methods
     - Logic of both methods were very similar so combined into one commit
+
+#### Ninth Commit
+    - Correctly implemented makeMoves()
