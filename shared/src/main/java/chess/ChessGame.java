@@ -90,7 +90,7 @@ public class ChessGame {
             this.board.addPiece(endPos, currPiece);
             this.board.addPiece(startPosition, null);
 
-            boolean check = isInCheck(teamTurn);
+            boolean check = isInCheck(currPiece.getTeamColor());
 
             if(!check){
                 validMoves.add(move);

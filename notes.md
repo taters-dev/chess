@@ -80,3 +80,7 @@
 
 #### Sixth Commit
     - Passing 4 of 5 test cases for the validMoves() method
+
+#### Seventh Commit
+    - Correctly Implemented validMoves() method
+    - The issue was I was checking isInCheck() using teamTurn and not the color of the piece
