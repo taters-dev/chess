@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -77,10 +78,29 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece currPiece = this.board.getPiece(startPosition);
+
         if (currPiece == null){
             return null;
         }
-        return currPiece.pieceMoves(this.board, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+        Collection<ChessMove> possibleMoves = currPiece.pieceMoves(this.board, startPosition);
+        for(ChessMove move : possibleMoves){
+            ChessPosition endPos = move.getEndPosition();
+            ChessPiece endPiece = this.board.getPiece(endPos);
+            this.board.addPiece(endPos, currPiece);
+            this.board.addPiece(startPosition, null);
+
+            boolean check = isInCheck(teamTurn);
+
+            if(!check){
+                validMoves.add(move);
+            }
+
+            this.board.addPiece(endPos, endPiece);
+            this.board.addPiece(startPosition, currPiece);
+
+        }
+        return validMoves;
     }
 
     /**
@@ -110,7 +130,7 @@ public class ChessGame {
                 currPos = new ChessPosition(row + 1, col + 1);
                 currPiece = this.board.getPiece(currPos);
                 if(currPiece != null){
-                    if (currPiece.type != null && currPiece.getTeamColor() != teamColor) {
+                    if (currPiece.getTeamColor() != teamColor) {
                         oppPositions.add(currPos);
                     }
                     if(currPiece.type == ChessPiece.PieceType.KING && currPiece.getTeamColor() == teamColor){

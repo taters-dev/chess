@@ -77,3 +77,6 @@
 
 #### Fifth Commit
     - Correctly implemented the isInCheck() method
+
+#### Sixth Commit
+    - Passing 4 of 5 test cases for the validMoves() method
