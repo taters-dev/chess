@@ -7,14 +7,17 @@ import java.util.HashMap;
 
 public class MemoryGameDAO implements GameDAO {
     private HashMap<Integer, GameData> gameTable = new HashMap<>();
+    private int currID = 1;
     @Override
     public int createGame(GameData gameData) throws DataAccessException {
-        if(gameTable.containsKey(gameData.gameID())){
+        GameData realGame = new GameData(currID++, gameData.whiteUsername(),
+                gameData.blackUsername(), gameData.gameName(), gameData.game());
+        if(gameTable.containsKey(realGame.gameID())){
             throw new DataAccessException("Game Already Exists");
         }
         else{
-            gameTable.put(gameData.gameID(), gameData);
-            return gameData.gameID();
+            gameTable.put(realGame.gameID(), realGame);
+            return realGame.gameID();
         }
     }
 
