@@ -1,12 +1,12 @@
 package service;
 
 import chess.ChessGame;
-import dataAccess.*;
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
-import requestAndResult.*;
+import requestandresult.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,13 +51,11 @@ public class ServiceTests {
             throw new RuntimeException(e);
         }
 
-        System.out.println(gameDAO.listGames().size());
         clearService.clear();
-        System.out.println(gameDAO.listGames().size());
 
         Assertions.assertEquals(0, gameDAO.listGames().size());
         Assertions.assertNull(authDAO.getAuth(testAuth.authToken()));
-        Assertions.assertThrows(DataAccessException.class, () -> gameDAO.getGame(testGame.gameID()));
+        Assertions.assertNull(gameDAO.getGame(testGame.gameID()));
         Assertions.assertNull(userDAO.getUser(testUser.username()));
     }
 
@@ -66,8 +64,6 @@ public class ServiceTests {
     @DisplayName("Valid Registration")
     public void validRegistration(){
         UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
-        System.out.println(testUser.toString());
-        System.out.println(userDAO.getUser(testUser.username()));
 
         RegisterRequest registerRequest = new RegisterRequest("taters", "pass", "novatate@byu.edu");
         try{
@@ -75,8 +71,6 @@ public class ServiceTests {
         } catch (BadRequestException | DataAccessException |AlreadyTakenException e) {
             throw new RuntimeException(e);
         }
-
-        System.out.println(userDAO.getUser(testUser.username()));
 
         Assertions.assertEquals(testUser, userDAO.getUser(testUser.username()));
     }
@@ -173,6 +167,48 @@ public class ServiceTests {
         Assertions.assertEquals(listGamesResult.toString(), gameService.listGames(listGamesRequest).toString());
     }
 
-    // @Test
-    // @Order(9)
+    @Test
+    @Order(9)
+    @DisplayName("Invalid List Games")
+    public void invalidListGames() throws DataAccessException, UnauthorizedException {
+        ListGamesRequest listGamesRequest = new ListGamesRequest("123");
+        Assertions.assertThrows(UnauthorizedException.class, () -> gameService.listGames(listGamesRequest));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Create valid game")
+    public void validCreateGame() throws DataAccessException, UnauthorizedException {
+        CreateGameRequest createGameRequest = new CreateGameRequest("123", "superbowl");
+        AuthData authData = new AuthData("123", "taters");
+        authDAO.createAuth(authData);
+
+        Assertions.assertDoesNotThrow(() -> gameService.createGame(createGameRequest));
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("Invalid game creation")
+    public void invalidCreateGame(){
+        Assertions.assertThrows(UnauthorizedException.class, () -> gameService.createGame(new CreateGameRequest("123", "taters")));
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("Valid Join Game")
+    public void validJoinGame() throws DataAccessException, AlreadyTakenException, BadRequestException, UnauthorizedException{
+        AuthData authData = new AuthData("123", "taters");
+        GameData gameData = new GameData(2, null, "tots", "tatertots", new ChessGame());
+        authDAO.createAuth(authData);
+        gameDAO.createGame(gameData);
+        Assertions.assertDoesNotThrow(() -> gameService.joinGame(new JoinGameRequest("123", "WHITE", 2)));
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("Invalid Join Game")
+    public void invalidJoinGame(){
+        Assertions.assertThrows(UnauthorizedException.class,
+                () -> gameService.joinGame(new JoinGameRequest("123", "WHITE", 2)));
+    }
 }

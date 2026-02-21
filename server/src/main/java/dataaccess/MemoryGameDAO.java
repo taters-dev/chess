@@ -1,16 +1,17 @@
-package dataAccess;
+package dataaccess;
 
 import model.GameData;
 
 import java.util.Collection;
 import java.util.HashMap;
 
+import static chess.ChessGame.TeamColor.WHITE;
+
 public class MemoryGameDAO implements GameDAO {
     private HashMap<Integer, GameData> gameTable = new HashMap<>();
-    private int currID = 1;
     @Override
     public int createGame(GameData gameData) throws DataAccessException {
-        GameData realGame = new GameData(currID++, gameData.whiteUsername(),
+        GameData realGame = new GameData(gameData.gameID(), gameData.whiteUsername(),
                 gameData.blackUsername(), gameData.gameName(), gameData.game());
         if(gameTable.containsKey(realGame.gameID())){
             throw new DataAccessException("Game Already Exists");
@@ -32,12 +33,12 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     @Override
-    public GameData getGame(int gameID) throws DataAccessException {
+    public GameData getGame(int gameID) {
         if(gameTable.containsKey(gameID)){
             return gameTable.get(gameID);
         }
         else{
-            throw new DataAccessException("Game does not exist");
+            return null;
         }
     }
 
@@ -46,9 +47,9 @@ public class MemoryGameDAO implements GameDAO {
         return gameTable.values();
     }
 
+
     @Override
     public void clear(){
         gameTable.clear();
-        currID = 1;
     }
 }
