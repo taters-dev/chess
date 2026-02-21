@@ -1,4 +1,4 @@
-package dataaccess;
+package dataAccess;
 
 import model.GameData;
 
@@ -49,5 +49,6 @@ public class MemoryGameDAO implements GameDAO {
     @Override
     public void clear(){
         gameTable.clear();
+        currID = 1;
     }
 }
