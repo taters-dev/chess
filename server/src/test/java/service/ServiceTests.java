@@ -65,7 +65,7 @@ public class ServiceTests {
         System.out.println(userDAO.getUser(testUser.username()));
         try{
             userService.register("taters", "pass", "novatate@byu.edu");
-        } catch (DataAccessException e) {
+        } catch (BadRequestException | DataAccessException |AlreadyTakenException e) {
             throw new RuntimeException(e);
         }
 
@@ -76,7 +76,7 @@ public class ServiceTests {
 
     @Test
     @Order(3)
-    @DisplayName("Invalid Registration - Existing Ussername")
+    @DisplayName("Invalid Registration - Existing Username")
     public void invalidRegistration(){
         UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
         try{
@@ -84,7 +84,33 @@ public class ServiceTests {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
-        Assertions.assertThrows(DataAccessException.class, () -> userService.register("taters", "pass", "novatate@byu.edu"));
+        Assertions.assertThrows(AlreadyTakenException.class, () -> userService.register("taters", "pass", "novatate@byu.edu"));
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Valid Login")
+    public void validLogin(){
+        UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
+        try{
+            userDAO.createUser(testUser);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+        Assertions.assertDoesNotThrow(() -> userService.login("taters", "pass"));
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("Invalid Password")
+    public void invalidLogin(){
+        UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
+        try{
+            userDAO.createUser(testUser);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+        Assertions.assertThrows(UnauthorizedException.class, () -> userService.login("taters", "password"));
     }
 
 
