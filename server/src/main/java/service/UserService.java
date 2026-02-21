@@ -3,6 +3,7 @@ package service;
 import dataAccess.*;
 import model.AuthData;
 import model.UserData;
+import requestAndResult.*;
 
 import java.util.UUID;
 
@@ -15,7 +16,10 @@ public class UserService {
         this.authDAO = authDAO;
     }
 
-    public AuthData register(String username, String password, String email) throws BadRequestException, AlreadyTakenException, DataAccessException{
+    public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException, DataAccessException{
+        String username = registerRequest.username();
+        String password = registerRequest.password();
+        String email = registerRequest.email();
         if(username == null || password == null || email == null){
             throw new BadRequestException("Cannot have an empty register values");
         }
@@ -27,12 +31,15 @@ public class UserService {
         userDAO.createUser(newUser);
 
         String authToken = UUID.randomUUID().toString();
-        AuthData newAuth = new AuthData(authToken, username);
-        authDAO.createAuth(newAuth);
-        return newAuth;
+
+        return new RegisterResult(username, authToken);
     }
 
-    public AuthData login(String username, String password) throws BadRequestException, UnauthorizedException, DataAccessException{
+    public LoginResult login(LoginRequest loginRequest) throws BadRequestException, UnauthorizedException, DataAccessException{
+
+        String username = loginRequest.username();
+        String password = loginRequest.password();
+
         if(username == null || password == null){
             throw new BadRequestException("Cannot have an empty login value");
         }
@@ -44,12 +51,13 @@ public class UserService {
         }
 
         String authToken = UUID.randomUUID().toString();
-        AuthData newAuth = new AuthData(authToken, username);
-        authDAO.createAuth(newAuth);
-        return newAuth;
+
+        return new LoginResult(username, authToken);
     }
 
-    public void logout(String authToken) throws UnauthorizedException, DataAccessException{
+    public void logout(LogoutRequest logoutRequest) throws UnauthorizedException, DataAccessException{
+        String authToken = logoutRequest.authToken();
+
         if(authDAO.getAuth(authToken) == null){
             throw new UnauthorizedException("Unauthorized");
         }

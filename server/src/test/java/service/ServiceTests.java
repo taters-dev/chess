@@ -6,6 +6,10 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import requestAndResult.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class ServiceTests {
     private MemoryAuthDAO authDAO;
@@ -27,6 +31,7 @@ public class ServiceTests {
         userDAO = new MemoryUserDAO();
         clearService = new ClearService(userDAO, gameDAO, authDAO);
         userService = new UserService(userDAO, authDAO);
+        gameService = new GameService(authDAO, gameDAO);
         clearService.clear();
     }
 
@@ -63,8 +68,10 @@ public class ServiceTests {
         UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
         System.out.println(testUser.toString());
         System.out.println(userDAO.getUser(testUser.username()));
+
+        RegisterRequest registerRequest = new RegisterRequest("taters", "pass", "novatate@byu.edu");
         try{
-            userService.register("taters", "pass", "novatate@byu.edu");
+            userService.register(registerRequest);
         } catch (BadRequestException | DataAccessException |AlreadyTakenException e) {
             throw new RuntimeException(e);
         }
@@ -84,7 +91,10 @@ public class ServiceTests {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
-        Assertions.assertThrows(AlreadyTakenException.class, () -> userService.register("taters", "pass", "novatate@byu.edu"));
+
+        RegisterRequest registerRequest = new RegisterRequest("taters", "pass", "novatate@byu.edu");
+
+        Assertions.assertThrows(AlreadyTakenException.class, () -> userService.register(registerRequest));
     }
 
     @Test
@@ -97,7 +107,9 @@ public class ServiceTests {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
-        Assertions.assertDoesNotThrow(() -> userService.login("taters", "pass"));
+
+        LoginRequest loginRequest = new LoginRequest("taters", "pass");
+        Assertions.assertDoesNotThrow(() -> userService.login(loginRequest));
     }
 
     @Test
@@ -110,7 +122,9 @@ public class ServiceTests {
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
-        Assertions.assertThrows(UnauthorizedException.class, () -> userService.login("taters", "password"));
+
+        LoginRequest loginRequest = new LoginRequest("taters", "password");
+        Assertions.assertThrows(UnauthorizedException.class, () -> userService.login(loginRequest));
     }
 
     @Test
@@ -125,13 +139,40 @@ public class ServiceTests {
             throw new RuntimeException(e);
         }
 
-        Assertions.assertDoesNotThrow(() -> userService.logout("123"));
+        LogoutRequest logoutRequest = new LogoutRequest("123");
+
+        Assertions.assertDoesNotThrow(() -> userService.logout(logoutRequest));
     }
 
     @Test
     @Order(7)
     @DisplayName("Invalid Logout")
     public void invalidLogout(){
-        Assertions.assertThrows(UnauthorizedException.class, () -> userService.logout("123"));
+        LogoutRequest logoutRequest = new LogoutRequest("123");
+        Assertions.assertThrows(UnauthorizedException.class, () -> userService.logout(logoutRequest));
     }
+
+    @Test
+    @Order(8)
+    @DisplayName("List Games")
+    public void validListGames() throws DataAccessException, UnauthorizedException {
+        GameData gameOne = new GameData(1, "byu", "utah", "holywar", new ChessGame());
+        GameData gameTwo = new GameData(2, "seahawks", "patriots", "superbowl", new ChessGame());
+        Collection<GameData> testList = new ArrayList<>();
+        testList.add(gameOne);
+        testList.add(gameTwo);
+
+        AuthData testData = new AuthData("123", "taters");
+        authDAO.createAuth(testData);
+        gameDAO.createGame(gameOne);
+        gameDAO.createGame(gameTwo);
+
+        ListGamesRequest listGamesRequest = new ListGamesRequest("123");
+        ListGamesResult listGamesResult = new ListGamesResult(testList);
+
+        Assertions.assertEquals(listGamesResult.toString(), gameService.listGames(listGamesRequest).toString());
+    }
+
+    // @Test
+    // @Order(9)
 }
