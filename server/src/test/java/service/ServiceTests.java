@@ -51,7 +51,7 @@ public class ServiceTests {
         System.out.println(gameDAO.listGames().size());
 
         Assertions.assertEquals(0, gameDAO.listGames().size());
-        Assertions.assertThrows(DataAccessException.class, () -> authDAO.getAuth(testAuth.authToken()));
+        Assertions.assertNull(authDAO.getAuth(testAuth.authToken()));
         Assertions.assertThrows(DataAccessException.class, () -> gameDAO.getGame(testGame.gameID()));
         Assertions.assertNull(userDAO.getUser(testUser.username()));
     }
@@ -113,5 +113,25 @@ public class ServiceTests {
         Assertions.assertThrows(UnauthorizedException.class, () -> userService.login("taters", "password"));
     }
 
+    @Test
+    @Order(6)
+    @DisplayName("Logged out")
+    public void validLogout(){
+        AuthData testAuth = new AuthData("123", "taters");
 
+        try{
+            authDAO.createAuth(testAuth);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        Assertions.assertDoesNotThrow(() -> userService.logout("123"));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Invalid Logout")
+    public void invalidLogout(){
+        Assertions.assertThrows(UnauthorizedException.class, () -> userService.logout("123"));
+    }
 }

@@ -18,12 +18,12 @@ public class MemoryAuthDAO implements AuthDAO{
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken){
         if(authTable.containsKey(authToken)){
             return authTable.get(authToken);
         }
         else{
-            throw new DataAccessException("AuthToken does not exist");
+            return null;
         }
     }
 

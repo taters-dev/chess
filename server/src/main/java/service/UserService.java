@@ -33,7 +33,7 @@ public class UserService {
     }
 
     public AuthData login(String username, String password) throws BadRequestException, UnauthorizedException, DataAccessException{
-        if(username == null | password == null){
+        if(username == null || password == null){
             throw new BadRequestException("Cannot have an empty login value");
         }
         if(userDAO.getUser(username) == null){
@@ -47,5 +47,13 @@ public class UserService {
         AuthData newAuth = new AuthData(authToken, username);
         authDAO.createAuth(newAuth);
         return newAuth;
+    }
+
+    public void logout(String authToken) throws UnauthorizedException, DataAccessException{
+        if(authDAO.getAuth(authToken) == null){
+            throw new UnauthorizedException("Unauthorized");
+        }
+
+        authDAO.deleteAuth(authToken);
     }
 }
