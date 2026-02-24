@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.*;
+import model.AuthData;
 import model.UserData;
 import requestandresult.*;
 
@@ -30,6 +31,7 @@ public class UserService {
         userDAO.createUser(newUser);
 
         String authToken = UUID.randomUUID().toString();
+        authDAO.createAuth(new AuthData(authToken, username));
 
         return new RegisterResult(username, authToken);
     }
@@ -50,6 +52,7 @@ public class UserService {
         }
 
         String authToken = UUID.randomUUID().toString();
+        authDAO.createAuth(new AuthData(authToken, username));
 
         return new LoginResult(username, authToken);
     }

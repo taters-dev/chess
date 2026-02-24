@@ -21,11 +21,11 @@ public class ServiceTests {
     private ClearService clearService;
 
     @AfterEach
-    public void cleanup(){
+    public void cleanup() throws DataAccessException{
         clearService.clear();
     }
     @BeforeEach
-    public void setup(){
+    public void setup() throws DataAccessException{
         authDAO = new MemoryAuthDAO();
         gameDAO = new MemoryGameDAO();
         userDAO = new MemoryUserDAO();
@@ -38,7 +38,7 @@ public class ServiceTests {
     @Test
     @Order(1)
     @DisplayName("Clear Service")
-    public void clearServiceSuccess(){
+    public void clearServiceSuccess() throws DataAccessException{
         ChessGame game = new ChessGame();
         AuthData testAuth = new AuthData("123", "taters");
         GameData testGame = new GameData(123, "taters", "tots", "Holy War", game);

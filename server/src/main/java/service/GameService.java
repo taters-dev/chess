@@ -62,12 +62,8 @@ public class GameService {
         if(game == null){
             throw new BadRequestException("Game does not exist");
         }
-        System.out.println(gameDAO.getGame(gameID).whiteUsername());
         if(playerColor.equals("WHITE")){
             if(game.whiteUsername() != null){
-                System.out.println(game.whiteUsername());
-                System.out.println(game.blackUsername());
-                System.out.println("FIUHHHHH");
                 throw new AlreadyTakenException("This spot is already taken");
             }
             game = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
