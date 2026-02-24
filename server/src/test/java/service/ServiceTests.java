@@ -201,6 +201,7 @@ public class ServiceTests {
         GameData gameData = new GameData(2, null, "tots", "tatertots", new ChessGame());
         authDAO.createAuth(authData);
         gameDAO.createGame(gameData);
+        System.out.println(gameData.gameID());
         Assertions.assertDoesNotThrow(() -> gameService.joinGame(new JoinGameRequest("123", "WHITE", 2)));
     }
 

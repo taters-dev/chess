@@ -24,13 +24,17 @@ public class GameService {
     }
 
     public CreateGameResult createGame(CreateGameRequest createGameRequest) throws UnauthorizedException,
-            DataAccessException {
+            DataAccessException, BadRequestException {
         String authToken = createGameRequest.authToken();
         String gameName = createGameRequest.gameName();
 
         if(authDAO.getAuth(authToken) == null){
             throw new UnauthorizedException("Unauthorized");
         }
+        if(gameName == null || gameName.isEmpty()){
+            throw new BadRequestException("Game Name is Empty");
+        }
+
         GameData newGame = new GameData(0, null, null, gameName, new ChessGame());
         int gameID = gameDAO.createGame(newGame);
 

@@ -9,15 +9,17 @@ import static chess.ChessGame.TeamColor.WHITE;
 
 public class MemoryGameDAO implements GameDAO {
     private HashMap<Integer, GameData> gameTable = new HashMap<>();
+    private int nextID = 1;
     @Override
     public int createGame(GameData gameData) throws DataAccessException {
-        GameData realGame = new GameData(gameData.gameID(), gameData.whiteUsername(),
+        GameData realGame = new GameData(nextID, gameData.whiteUsername(),
                 gameData.blackUsername(), gameData.gameName(), gameData.game());
         if(gameTable.containsKey(realGame.gameID())){
             throw new DataAccessException("Game Already Exists");
         }
         else{
             gameTable.put(realGame.gameID(), realGame);
+            nextID++;
             return realGame.gameID();
         }
     }

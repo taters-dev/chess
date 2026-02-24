@@ -26,12 +26,16 @@ public class Server {
         userService = new UserService(userDAO, authDAO);
         ClearHandler clearHandler = new ClearHandler(clearService);
         UserHandler userHandler = new UserHandler(userService);
+        GameHandler gameHandler = new GameHandler(gameService);
 
         // Register your endpoints and exception handlers here.
         javalin.delete("/db", clearHandler::handleClear);
         javalin.post("/session", userHandler::handleLogin);
         javalin.post("/user", userHandler::handleRegister);
         javalin.delete("/session", userHandler::handleLogout);
+        javalin.get("/game", gameHandler::handleListGames);
+        javalin.post("/game", gameHandler::handleCreateGame);
+        javalin.put("/game", gameHandler::handleJoinGame);
 
 
     }
