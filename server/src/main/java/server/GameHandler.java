@@ -9,12 +9,10 @@ import io.javalin.http.Context;
 import requestandresult.*;
 import service.GameService;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GameHandler {
     private final GameService gameService;
     private final Gson gson = new Gson();
+    private final ExceptionHandler exceptionHandler = new ExceptionHandler();
 
     public GameHandler(GameService gameService){
         this.gameService = gameService;
@@ -32,21 +30,11 @@ public class GameHandler {
 
         }catch(UnauthorizedException e){
             ctx.status(401);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
 
         }catch (DataAccessException e){
             ctx.status(500);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
         }
     }
 
@@ -65,30 +53,16 @@ public class GameHandler {
 
         } catch(BadRequestException e){
             ctx.status(400);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
 
         } catch (UnauthorizedException e){
             ctx.status(401);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
 
         } catch (DataAccessException e){
             ctx.status(500);
+            exceptionHandler.errorHelper(ctx, e);
 
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
         }
     }
 
@@ -109,38 +83,20 @@ public class GameHandler {
 
         } catch (BadRequestException e){
             ctx.status(400);
+            exceptionHandler.errorHelper(ctx, e);
 
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
         } catch (UnauthorizedException e){
             ctx.status(401);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
 
         } catch (AlreadyTakenException e){
             ctx.status(403);
-
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
+            exceptionHandler.errorHelper(ctx, e);
 
         } catch (DataAccessException e){
             ctx.status(500);
+            exceptionHandler.errorHelper(ctx, e);
 
-            Map<String, String> mappedResult = new HashMap<>();
-            mappedResult.put("message", "Error: " + e.getMessage());
-            var result = gson.toJson(mappedResult);
-
-            ctx.result(result);
         }
     }
 }
