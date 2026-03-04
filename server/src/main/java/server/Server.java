@@ -1,9 +1,9 @@
 package server;
 
 import dataaccess.GameDAO;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.memoryaccess.MemoryAuthDAO;
+import dataaccess.memoryaccess.MemoryGameDAO;
+import dataaccess.memoryaccess.MemoryUserDAO;
 import io.javalin.*;
 import service.ClearService;
 import service.GameService;
@@ -17,6 +17,7 @@ public class Server {
     private final UserService userService;
 
     public Server() {
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         MemoryGameDAO gameDAO = new MemoryGameDAO();
         MemoryUserDAO userDAO = new MemoryUserDAO();

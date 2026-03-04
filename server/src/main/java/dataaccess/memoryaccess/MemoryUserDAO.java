@@ -1,14 +1,16 @@
-package dataaccess;
+package dataaccess.memoryaccess;
 
+import dataaccess.DataAccessException;
+import dataaccess.UserDAO;
 import model.UserData;
 
 import java.util.HashMap;
 
-public class MemoryUserDAO implements UserDAO{
+public class MemoryUserDAO implements UserDAO {
     private HashMap<String, UserData> userTable = new HashMap<>();
 
     @Override
-    public void createUser(UserData userData) throws DataAccessException{
+    public void createUser(UserData userData) throws DataAccessException {
         if(userTable.containsKey(userData.username())){
             throw new DataAccessException("User Already Exists");
         }
