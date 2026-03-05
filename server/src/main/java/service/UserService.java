@@ -3,6 +3,7 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import requestandresult.*;
 
 import java.util.UUID;
@@ -41,13 +42,15 @@ public class UserService {
         String username = loginRequest.username();
         String password = loginRequest.password();
 
+        System.out.println(loginRequest.password());
+        System.out.println(userDAO.getUser(username).password());
         if(username == null || password == null){
             throw new BadRequestException("Cannot have an empty login value");
         }
         if(userDAO.getUser(username) == null){
             throw new UnauthorizedException("User does not exist");
         }
-        if(!userDAO.getUser(username).password().equals(password)){
+        if(!BCrypt.checkpw(loginRequest.password(), userDAO.getUser(username).password())){
             throw new UnauthorizedException("Incorrect Password");
         }
 

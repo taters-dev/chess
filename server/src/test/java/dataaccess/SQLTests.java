@@ -3,6 +3,7 @@ package dataaccess;
 import dataaccess.sqlaccess.SQLAuthDao;
 import dataaccess.sqlaccess.SQLGameDAO;
 import dataaccess.sqlaccess.SQLUserDao;
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -13,7 +14,7 @@ import server.Server;
 public class SQLTests {
 
     private static final UserData TEST_USER = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
-
+    private static final AuthData TEST_AUTH = new AuthData("auth", "ExistingUser");
     private static TestServerFacade serverFacade;
 
     private static Server server;
@@ -54,7 +55,6 @@ public class SQLTests {
     @Test
     @DisplayName("Successful createuser()")
     @Order(1)
-
     public void successCreateUser(){
         Assertions.assertDoesNotThrow(() -> userDAO.createUser(TEST_USER));
     }
@@ -62,7 +62,6 @@ public class SQLTests {
     @Test
     @DisplayName("Failure createuser()")
     @Order(2)
-
     public void failCreateUser() throws DataAccessException{
         try {
             userDAO.createUser(TEST_USER);
@@ -74,6 +73,7 @@ public class SQLTests {
 
     @Test
     @DisplayName("Get User Success")
+    @Order(3)
 
     public void successGetUser() throws DataAccessException{
         try{
@@ -90,6 +90,8 @@ public class SQLTests {
 
     @Test
     @DisplayName("Get User Doesn't Exist")
+    @Order(4)
+
     public void failGetUser(){
         var result = userDAO.getUser(TEST_USER.username());
         Assertions.assertNull(result);
@@ -97,6 +99,7 @@ public class SQLTests {
 
     @Test
     @DisplayName("Clear Users")
+    @Order(5)
 
     public void clearUsers() throws DataAccessException{
         try{
@@ -108,4 +111,32 @@ public class SQLTests {
         }
 
     }
+
+    @Test
+    @DisplayName("Create Auth Success")
+    @Order(6)
+
+    public void createAuth() throws DataAccessException{
+        try{
+            authDAO.createAuth(TEST_AUTH);
+            Assertions.assertEquals(TEST_AUTH, authDAO.getAuth(TEST_AUTH.authToken()));
+        } catch (DataAccessException e) {
+            throw new DataAccessException(e.getMessage(), e);
+        }
+
+    }
+
+    @Test
+    @DisplayName("Auth Creation Failure")
+    @Order(7)
+
+    public void failedAuth() throws DataAccessException{
+        try{
+            authDAO.createAuth(TEST_AUTH);
+            Assertions.assertThrows(Exception.class, () -> authDAO.createAuth(TEST_AUTH));
+        } catch (DataAccessException e){
+            throw new DataAccessException(e.getMessage(), e);
+        }
+    }
+
 }
