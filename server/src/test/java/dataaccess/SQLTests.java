@@ -5,6 +5,7 @@ import dataaccess.sqlaccess.SQLGameDAO;
 import dataaccess.sqlaccess.SQLUserDao;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import org.mindrot.jbcrypt.BCrypt;
 import passoff.model.TestUser;
 import passoff.server.TestServerFacade;
 import server.Server;
@@ -65,11 +66,46 @@ public class SQLTests {
     public void failCreateUser() throws DataAccessException{
         try {
             userDAO.createUser(TEST_USER);
+            Assertions.assertThrows(DataAccessException.class, () -> userDAO.createUser(TEST_USER));
         } catch (DataAccessException e){
             throw new DataAccessException(e.getMessage(), e);
         }
-
-        Assertions.assertThrows(DataAccessException.class, () -> userDAO.createUser(TEST_USER));
     }
 
+    @Test
+    @DisplayName("Get User Success")
+
+    public void successGetUser() throws DataAccessException{
+        try{
+            userDAO.createUser(TEST_USER);
+            UserData result = userDAO.getUser(TEST_USER.username());
+            Assertions.assertTrue(result.username().equals(TEST_USER.username()) &&
+                            BCrypt.checkpw(TEST_USER.password(), result.password()) &&
+                            result.email().equals(TEST_USER.email())
+                    );
+        } catch (DataAccessException e){
+            throw new DataAccessException(e.getMessage(), e);
+        }
+    }
+
+    @Test
+    @DisplayName("Get User Doesn't Exist")
+    public void failGetUser(){
+        var result = userDAO.getUser(TEST_USER.username());
+        Assertions.assertNull(result);
+    }
+
+    @Test
+    @DisplayName("Clear Users")
+
+    public void clearUsers() throws DataAccessException{
+        try{
+            userDAO.createUser(TEST_USER);
+            userDAO.clear();
+            Assertions.assertDoesNotThrow(() -> userDAO.createUser(TEST_USER));
+        } catch (DataAccessException e) {
+            throw new DataAccessException(e.getMessage(), e);
+        }
+
+    }
 }
