@@ -40,7 +40,7 @@ public class MemoryAuthDAO implements AuthDAO {
     }
 
     @Override
-    public void clear(){
+    public void clear() throws DataAccessException {
         authTable.clear();
     }
 }

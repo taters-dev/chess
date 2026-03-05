@@ -22,7 +22,7 @@ public class SQLAuthDao implements AuthDAO {
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
 
     }
 }
