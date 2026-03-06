@@ -1,18 +1,22 @@
 package dataaccess;
 
+import chess.ChessGame;
 import dataaccess.sqlaccess.SQLAuthDao;
 import dataaccess.sqlaccess.SQLGameDAO;
 import dataaccess.sqlaccess.SQLUserDao;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 import server.Server;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SQLTests {
 
     private static final UserData TEST_USER = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
     private static final AuthData TEST_AUTH = new AuthData("auth", "ExistingUser");
+    private static final GameData TEST_GAME = new GameData(1, null, null, "test", new ChessGame());
 
     private static Server server;
 
@@ -158,4 +162,33 @@ public class SQLTests {
         Assertions.assertDoesNotThrow(() -> authDAO.getAuth(TEST_AUTH.authToken()));
     }
 
+
+    @Test
+    @DisplayName("Clear Auth")
+    @Order(10)
+
+    public void clearAuth() throws DataAccessException{
+        try{
+            authDAO.createAuth(TEST_AUTH);
+            authDAO.clear();
+            Assertions.assertDoesNotThrow(() -> authDAO.createAuth(TEST_AUTH));
+        } catch (DataAccessException e) {
+            throw new DataAccessException(e.getMessage(), e);
+        }
+
+    }
+
+    @Test
+    @DisplayName("Create Game Success")
+    @Order(11)
+    public void createGameSuccess() throws DataAccessException{
+        Assertions.assertDoesNotThrow(() -> gameDAO.createGame(TEST_GAME));
+    }
+
+    @Test
+    @DisplayName("Create Game All Null")
+    @Order(11)
+    public void createNullGame(){
+        Assertions.assertThrows(Exception.class, () -> gameDAO.createGame(new GameData(0, null, null, null, null)));
+    }
 }
