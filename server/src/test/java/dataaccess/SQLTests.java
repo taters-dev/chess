@@ -7,15 +7,12 @@ import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
-import passoff.model.TestUser;
-import passoff.server.TestServerFacade;
 import server.Server;
 
 public class SQLTests {
 
     private static final UserData TEST_USER = new UserData("ExistingUser", "existingUserPassword", "eu@mail.com");
     private static final AuthData TEST_AUTH = new AuthData("auth", "ExistingUser");
-    private static TestServerFacade serverFacade;
 
     private static Server server;
 
@@ -32,8 +29,6 @@ public class SQLTests {
         gameDAO = new SQLGameDAO();
         userDAO = new SQLUserDao();
         authDAO = new SQLAuthDao();
-
-        serverFacade = new TestServerFacade("localhost", Integer.toString(port));
     }
 
     @BeforeEach
@@ -137,6 +132,30 @@ public class SQLTests {
         } catch (DataAccessException e){
             throw new DataAccessException(e.getMessage(), e);
         }
+    }
+
+    @Test
+    @DisplayName("Auth Deletion Success")
+    @Order(8)
+
+    public void successDeleteAuth() throws DataAccessException{
+        try{
+            authDAO.createAuth(TEST_AUTH);
+            authDAO.deleteAuth(TEST_AUTH.authToken());
+            Assertions.assertDoesNotThrow(() -> authDAO.createAuth(TEST_AUTH));
+        } catch(DataAccessException e){
+            throw new DataAccessException(e.getMessage(), e);
+        }
+    }
+
+    @Test
+    @DisplayName("Auth Deletion Doesn't Effect Other Auth")
+    @Order(9)
+
+    public void failedDeleteAuth() throws DataAccessException{
+        authDAO.createAuth(TEST_AUTH);
+        authDAO.deleteAuth("DOESN'T EXIST");
+        Assertions.assertDoesNotThrow(() -> authDAO.getAuth(TEST_AUTH.authToken()));
     }
 
 }

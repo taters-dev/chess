@@ -9,14 +9,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-
 public class SQLAuthDao implements AuthDAO {
 
     @Override
     public void createAuth(AuthData authData) throws DataAccessException {
         var statement = "INSERT INTO auth (authtoken, username) VALUES (?, ?)";
-        executeUpdate(statement, authData.authToken(), authData.username());
+        ExecuteUpdate.executeUpdate(statement, authData.authToken(), authData.username());
     }
 
     @Override
@@ -39,34 +37,14 @@ public class SQLAuthDao implements AuthDAO {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-
+        var statement = "DELETE FROM auth WHERE authtoken=?";
+        ExecuteUpdate.executeUpdate(statement, authToken);
     }
 
     @Override
     public void clear() throws DataAccessException {
         var statement = "TRUNCATE auth";
-        executeUpdate(statement);
+        ExecuteUpdate.executeUpdate(statement);
 
-    }
-
-    private int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
-                }
-                ps.executeUpdate();
-
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-
-                return 0;
-            }
-        } catch (Exception e) {
-            throw new DataAccessException(e.getMessage(), e);
-        }
     }
 }
