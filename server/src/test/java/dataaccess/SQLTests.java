@@ -187,8 +187,39 @@ public class SQLTests {
 
     @Test
     @DisplayName("Create Game All Null")
-    @Order(11)
+    @Order(12)
     public void createNullGame(){
         Assertions.assertThrows(Exception.class, () -> gameDAO.createGame(new GameData(0, null, null, null, null)));
     }
+
+    @Test
+    @DisplayName("Clear Games")
+    @Order(13)
+    public void clearGames() throws DataAccessException{
+        try{
+            gameDAO.createGame(TEST_GAME);
+            gameDAO.clear();
+            Assertions.assertDoesNotThrow(() -> gameDAO.createGame(TEST_GAME));
+        } catch (DataAccessException e) {
+            throw new DataAccessException(e.getMessage(), e);
+        }
+    }
+
+    @Test
+    @DisplayName("Get Game Success")
+    @Order(14)
+    public void successGetGame() throws DataAccessException{
+        gameDAO.createGame(TEST_GAME);
+        Assertions.assertDoesNotThrow(() -> gameDAO.getGame(1));
+    }
+
+    @Test
+    @DisplayName("Get Game Failure")
+    @Order(15)
+    public void failureGetGame() throws DataAccessException{
+        gameDAO.createGame(TEST_GAME);
+        var result = gameDAO.getGame(0);
+        Assertions.assertNull(result);
+    }
+
 }
