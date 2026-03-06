@@ -1,6 +1,9 @@
 package dataaccess;
 
 import chess.ChessGame;
+import dataaccess.memoryaccess.MemoryAuthDAO;
+import dataaccess.memoryaccess.MemoryGameDAO;
+import dataaccess.memoryaccess.MemoryUserDAO;
 import dataaccess.sqlaccess.SQLAuthDao;
 import dataaccess.sqlaccess.SQLGameDAO;
 import dataaccess.sqlaccess.SQLUserDao;
@@ -94,7 +97,7 @@ public class SQLTests {
     @DisplayName("Get User Doesn't Exist")
     @Order(4)
 
-    public void failGetUser(){
+    public void failGetUser() throws DataAccessException{
         var result = userDAO.getUser(TEST_USER.username());
         Assertions.assertNull(result);
     }

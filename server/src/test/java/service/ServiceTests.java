@@ -5,19 +5,23 @@ import dataaccess.*;
 import dataaccess.memoryaccess.MemoryAuthDAO;
 import dataaccess.memoryaccess.MemoryGameDAO;
 import dataaccess.memoryaccess.MemoryUserDAO;
+import dataaccess.sqlaccess.SQLAuthDao;
+import dataaccess.sqlaccess.SQLGameDAO;
+import dataaccess.sqlaccess.SQLUserDao;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import org.mindrot.jbcrypt.BCrypt;
 import requestandresult.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class ServiceTests {
-    private MemoryAuthDAO authDAO;
-    private MemoryGameDAO gameDAO;
-    private MemoryUserDAO userDAO;
+    private AuthDAO authDAO;
+    private GameDAO gameDAO;
+    private UserDAO userDAO;
 
     private UserService userService;
     private GameService gameService;
@@ -29,9 +33,9 @@ public class ServiceTests {
     }
     @BeforeEach
     public void setup() throws DataAccessException{
-        authDAO = new MemoryAuthDAO();
-        gameDAO = new MemoryGameDAO();
-        userDAO = new MemoryUserDAO();
+        authDAO = new SQLAuthDao();
+        gameDAO = new SQLGameDAO();
+        userDAO = new SQLUserDao();
         clearService = new ClearService(userDAO, gameDAO, authDAO);
         userService = new UserService(userDAO, authDAO);
         gameService = new GameService(authDAO, gameDAO);
@@ -65,17 +69,13 @@ public class ServiceTests {
     @Test
     @Order(2)
     @DisplayName("Valid Registration")
-    public void validRegistration(){
+    public void validRegistration() throws Exception{
         UserData testUser = new UserData("taters", "pass", "novatate@byu.edu");
 
         RegisterRequest registerRequest = new RegisterRequest("taters", "pass", "novatate@byu.edu");
-        try{
-            userService.register(registerRequest);
-        } catch (BadRequestException | DataAccessException |AlreadyTakenException e) {
-            throw new RuntimeException(e);
-        }
-
-        Assertions.assertEquals(testUser, userDAO.getUser(testUser.username()));
+        Assertions.assertDoesNotThrow(() -> userService.register(registerRequest));
+        UserData newUser = userDAO.getUser(testUser.username());
+        Assertions.assertTrue(BCrypt.checkpw(testUser.password(), newUser.password()));
     }
 
     @Test
@@ -156,18 +156,23 @@ public class ServiceTests {
         GameData gameOne = new GameData(1, "byu", "utah", "holywar", new ChessGame());
         GameData gameTwo = new GameData(2, "seahawks", "patriots", "superbowl", new ChessGame());
         Collection<GameData> testList = new ArrayList<>();
-        testList.add(gameOne);
-        testList.add(gameTwo);
 
         AuthData testData = new AuthData("123", "taters");
         authDAO.createAuth(testData);
-        gameDAO.createGame(gameOne);
-        gameDAO.createGame(gameTwo);
+        int firstID = gameDAO.createGame(gameOne);
+        int secondID = gameDAO.createGame(gameTwo);
+
+        gameOne = new GameData(firstID, gameOne.whiteUsername(), gameOne.blackUsername(), gameOne.gameName(), gameOne.game());
+        gameTwo = new GameData(secondID, gameTwo.whiteUsername(), gameTwo.blackUsername(), gameTwo.gameName(), gameTwo.game());
+
+        testList.add(gameOne);
+        testList.add(gameTwo);
+
 
         ListGamesRequest listGamesRequest = new ListGamesRequest("123");
         ListGamesResult listGamesResult = new ListGamesResult(testList);
 
-        Assertions.assertEquals(listGamesResult.toString(), gameService.listGames(listGamesRequest).toString());
+        Assertions.assertEquals(listGamesResult, gameService.listGames(listGamesRequest));
     }
 
     @Test
@@ -203,9 +208,9 @@ public class ServiceTests {
         AuthData authData = new AuthData("123", "taters");
         GameData gameData = new GameData(2, null, "tots", "tatertots", new ChessGame());
         authDAO.createAuth(authData);
-        gameDAO.createGame(gameData);
+        int gameID = gameDAO.createGame(gameData);
         System.out.println(gameData.gameID());
-        Assertions.assertDoesNotThrow(() -> gameService.joinGame(new JoinGameRequest("123", "WHITE", 2)));
+        Assertions.assertDoesNotThrow(() -> gameService.joinGame(new JoinGameRequest("123", "WHITE", gameID)));
     }
 
     @Test

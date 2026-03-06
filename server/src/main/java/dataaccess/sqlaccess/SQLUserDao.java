@@ -20,7 +20,7 @@ public class SQLUserDao implements UserDAO {
     }
 
     @Override
-    public UserData getUser(String username){
+    public UserData getUser(String username) throws DataAccessException{
         try (Connection conn = DatabaseManager.getConnection()) {
             var statement = "SELECT username, password, email FROM users WHERE username=?";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
@@ -32,7 +32,7 @@ public class SQLUserDao implements UserDAO {
                 }
             }
         } catch (Exception e) {
-            return null;
+           throw new DataAccessException(e.getMessage(), e);
         }
         return null;
     }
