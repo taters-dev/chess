@@ -162,7 +162,6 @@ public class SQLTests {
         Assertions.assertDoesNotThrow(() -> authDAO.getAuth(TEST_AUTH.authToken()));
     }
 
-
     @Test
     @DisplayName("Clear Auth")
     @Order(10)
@@ -182,7 +181,9 @@ public class SQLTests {
     @DisplayName("Create Game Success")
     @Order(11)
     public void createGameSuccess() throws DataAccessException{
+        int id = gameDAO.createGame(TEST_GAME);
         Assertions.assertDoesNotThrow(() -> gameDAO.createGame(TEST_GAME));
+        Assertions.assertDoesNotThrow(() -> gameDAO.getGame(id));
     }
 
     @Test
@@ -219,6 +220,42 @@ public class SQLTests {
     public void failureGetGame() throws DataAccessException{
         gameDAO.createGame(TEST_GAME);
         var result = gameDAO.getGame(0);
+        Assertions.assertNull(result);
+    }
+
+    @Test
+    @DisplayName("Get auth success")
+    @Order(16)
+
+    public void successGetAuth() throws DataAccessException{
+        authDAO.createAuth(TEST_AUTH);
+        Assertions.assertDoesNotThrow(() -> authDAO.getAuth(TEST_AUTH.authToken()));
+    }
+
+    @Test
+    @DisplayName("Get auth fail")
+    @Order(17)
+
+    public void failGetAuth() throws DataAccessException{
+        Assertions.assertNull(authDAO.getAuth("fail"));
+    }
+
+    @Test
+    @DisplayName("Update game success")
+    @Order(18)
+    public void successUpdateGame() throws DataAccessException{
+        int id = gameDAO.createGame(TEST_GAME);
+        GameData update = new GameData(id, "tate", null, TEST_GAME.gameName(), TEST_GAME.game());
+        gameDAO.updateGame(update);
+        GameData curr = gameDAO.getGame(id);
+        Assertions.assertEquals(update.whiteUsername(), curr.whiteUsername());
+    }
+
+    @Test
+    @DisplayName("Update game failure")
+    public void failUpdateGame() throws DataAccessException {
+        gameDAO.updateGame(TEST_GAME);
+        var result = gameDAO.getGame(TEST_GAME.gameID());
         Assertions.assertNull(result);
     }
 

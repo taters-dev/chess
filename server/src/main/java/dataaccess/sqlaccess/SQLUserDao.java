@@ -1,6 +1,5 @@
 package dataaccess.sqlaccess;
 
-import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import dataaccess.UserDAO;
@@ -10,8 +9,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class SQLUserDao implements UserDAO {
     @Override

@@ -42,8 +42,6 @@ public class UserService {
         String username = loginRequest.username();
         String password = loginRequest.password();
 
-        System.out.println(loginRequest.password());
-        System.out.println(userDAO.getUser(username).password());
         if(username == null || password == null){
             throw new BadRequestException("Cannot have an empty login value");
         }
