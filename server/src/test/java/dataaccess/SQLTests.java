@@ -11,6 +11,9 @@ import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 import server.Server;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SQLTests {
 
@@ -253,10 +256,30 @@ public class SQLTests {
 
     @Test
     @DisplayName("Update game failure")
+    @Order(19)
     public void failUpdateGame() throws DataAccessException {
         gameDAO.updateGame(TEST_GAME);
         var result = gameDAO.getGame(TEST_GAME.gameID());
         Assertions.assertNull(result);
+    }
+
+    @Test
+    @DisplayName("List games success")
+    @Order(20)
+    public void successListGames() throws DataAccessException{
+        gameDAO.createGame(TEST_GAME);
+        Collection<GameData> result = gameDAO.listGames();
+
+        Assertions.assertEquals(1, result.size());
+        Assertions.assertTrue(result.contains(TEST_GAME));
+    }
+
+    @Test
+    @DisplayName("List game empty table")
+    @Order(21)
+    public void emptyListGames() throws DataAccessException{
+        Collection<GameData> result = gameDAO.listGames();
+        Assertions.assertEquals(0, result.size());
     }
 
 }

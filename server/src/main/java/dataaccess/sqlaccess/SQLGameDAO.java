@@ -10,6 +10,7 @@ import model.GameData;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -55,7 +56,30 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-        return List.of();
+        ArrayList<GameData> result = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameid, whiteusername, blackusername, gamename, game FROM games";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(readGame(rs));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(e.getMessage(), e);
+        }
+        return result;
+    }
+
+    private GameData readGame(ResultSet rs) throws Exception{
+        var gameID = rs.getInt("gameid");
+        var whiteUsername = rs.getString("whiteusername");
+        var blackUsername = rs.getString("blackusername");
+        var gameName = rs.getString("gamename");
+        var game = rs.getString("game");
+        ChessGame chessGame = new Gson().fromJson(game, ChessGame.class);
+        return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
     }
 
     @Override
