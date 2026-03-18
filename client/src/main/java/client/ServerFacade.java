@@ -1,6 +1,6 @@
 package client;
 
-import com.google.gson.Gson;import exception.ResponseException;import requestandresult.LoginRequest;import requestandresult.LoginResult;import java.net.URI;
+import com.google.gson.Gson;import exception.ResponseException;import requestandresult.LoginRequest;import requestandresult.LoginResult;import requestandresult.RegisterRequest;import requestandresult.RegisterResult;import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;import java.net.http.HttpResponse;
 
@@ -22,6 +22,12 @@ public class ServerFacade {
         var request = buildRequest("POST", "/session", loginRequest);
         var response = sendRequest(request);
         return handleResponse(response, LoginResult.class);
+    }
+
+    public RegisterResult register(RegisterRequest registerRequest) throws ResponseException{
+        var request = buildRequest("POST", "/user", registerRequest);
+        var response = sendRequest(request);
+        return handleResponse(response, RegisterResult.class);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body){
