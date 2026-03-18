@@ -1,6 +1,6 @@
 package client;
 
-import com.google.gson.Gson;import exception.ResponseException;import java.net.URI;
+import com.google.gson.Gson;import exception.ResponseException;import requestandresult.LoginRequest;import requestandresult.LoginResult;import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;import java.net.http.HttpResponse;
 
@@ -16,6 +16,12 @@ public class ServerFacade {
         var request = buildRequest("DELETE", "/db", null);
         var response =sendRequest(request);
         handleResponse(response, null);
+    }
+
+    public LoginResult login(LoginRequest loginRequest) throws ResponseException{
+        var request = buildRequest("POST", "/session", loginRequest);
+        var response = sendRequest(request);
+        return handleResponse(response, LoginResult.class);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body){
