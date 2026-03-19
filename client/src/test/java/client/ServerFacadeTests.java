@@ -103,4 +103,16 @@ public class ServerFacadeTests {
     public void failedListGames() throws ResponseException {
         Assertions.assertThrows(Exception.class, () -> serverFacade.listGames("123"));
     }
+
+    @Test
+    public void positiveCreateGame() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        String authToken = registerResult.authToken();
+        Assertions.assertDoesNotThrow(() -> serverFacade.createGame(authToken, "march madness"));
+    }
+
+    @Test
+    public void failedCreateGame() throws ResponseException{
+        Assertions.assertThrows(Exception.class, () -> serverFacade.createGame("GOCOUGARS", "Minecraft"));
+    }
 }
