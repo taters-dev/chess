@@ -18,13 +18,15 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws ResponseException{
+    public LoginResult login(String username, String password) throws ResponseException{
+        LoginRequest loginRequest = new LoginRequest(username, password);
         var request = buildRequest("POST", "/session", loginRequest);
         var response = sendRequest(request);
         return handleResponse(response, LoginResult.class);
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws ResponseException{
+    public RegisterResult register(String username, String password, String email) throws ResponseException{
+        RegisterRequest registerRequest = new RegisterRequest(username, password, email);
         var request = buildRequest("POST", "/user", registerRequest);
         var response = sendRequest(request);
         return handleResponse(response, RegisterResult.class);
