@@ -13,39 +13,41 @@ public class ServerFacade {
     }
 
     public void clear() throws ResponseException{
-        var request = buildRequest("DELETE", "/db", null);
+        var request = buildRequest("DELETE", "/db", null, null);
         var response =sendRequest(request);
         handleResponse(response, null);
     }
 
     public LoginResult login(String username, String password) throws ResponseException{
         LoginRequest loginRequest = new LoginRequest(username, password);
-        var request = buildRequest("POST", "/session", loginRequest);
+        var request = buildRequest("POST", "/session", loginRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, LoginResult.class);
     }
 
     public RegisterResult register(String username, String password, String email) throws ResponseException{
         RegisterRequest registerRequest = new RegisterRequest(username, password, email);
-        var request = buildRequest("POST", "/user", registerRequest);
+        var request = buildRequest("POST", "/user", registerRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, RegisterResult.class);
     }
 
     public void logout(String authToken) throws ResponseException{
-        LogoutRequest logoutRequest = new LogoutRequest(authToken);
-        var request = buildRequest("DELETE", "/session", logoutRequest);
+        var request = buildRequest("DELETE", "/session", null, authToken);
         var response = sendRequest(request);
         handleResponse(response, null);
 
     }
 
-    private HttpRequest buildRequest(String method, String path, Object body){
+    private HttpRequest buildRequest(String method, String path, Object body, String authToken){
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
+        }
+        if(authToken != null){
+            request.setHeader("authorization", authToken);
         }
         return request.build();
     }

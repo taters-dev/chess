@@ -75,4 +75,19 @@ public class ServerFacadeTests {
         Assertions.assertThrows(Exception.class, () -> serverFacade.register("tate", "password",
                 "novatate@byu.edu"));
     }
+
+    @Test
+    public void positiveLogout() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(registerResult.authToken()));
+        Assertions.assertDoesNotThrow(() -> serverFacade.login("tate", "password"));
+    }
+
+    @Test
+    public void failedLogout() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        String fakeAuth = registerResult.authToken() + 1;
+        Assertions.assertThrows(Exception.class, () -> serverFacade.logout(fakeAuth));
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(registerResult.authToken()));
+    }
 }
