@@ -1,6 +1,6 @@
 package client;
 
-import com.google.gson.Gson;import exception.ResponseException;import requestandresult.LoginRequest;import requestandresult.LoginResult;import requestandresult.RegisterRequest;import requestandresult.RegisterResult;import java.net.URI;
+import com.google.gson.Gson;import exception.ResponseException;import requestandresult.*;import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;import java.net.http.HttpResponse;
 
@@ -30,6 +30,14 @@ public class ServerFacade {
         var request = buildRequest("POST", "/user", registerRequest);
         var response = sendRequest(request);
         return handleResponse(response, RegisterResult.class);
+    }
+
+    public void logout(String authToken) throws ResponseException{
+        LogoutRequest logoutRequest = new LogoutRequest(authToken);
+        var request = buildRequest("DELETE", "/session", logoutRequest);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+
     }
 
     private HttpRequest buildRequest(String method, String path, Object body){
