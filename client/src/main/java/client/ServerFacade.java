@@ -39,7 +39,6 @@ public class ServerFacade {
 
     }
 
-
     public ListGamesResult listGames(String authToken) throws ResponseException{
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
@@ -47,10 +46,17 @@ public class ServerFacade {
     }
 
     public CreateGameResult createGame(String authToken, String gameName) throws ResponseException{
-        CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
+        CreateGameRequest createGameRequest = new CreateGameRequest(null, gameName);
         var request = buildRequest("POST", "/game", createGameRequest, authToken);
         var response = sendRequest(request);
         return handleResponse(response, CreateGameResult.class);
+    }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException{
+        JoinGameRequest joinGameRequest = new JoinGameRequest(null, playerColor, gameID);
+        var request = buildRequest("PUT", "/game", joinGameRequest, authToken);
+        var response = sendRequest(request);
+        handleResponse(response, null);
     }
 
     private HttpRequest buildRequest(String method, String path, Object body, String authToken){

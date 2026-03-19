@@ -2,9 +2,7 @@ package client;
 
 import exception.ResponseException;
 import org.junit.jupiter.api.*;
-import requestandresult.LoginResult;
-import requestandresult.RegisterRequest;
-import requestandresult.RegisterResult;
+import requestandresult.*;
 import server.Server;
 
 
@@ -89,5 +87,20 @@ public class ServerFacadeTests {
         String fakeAuth = registerResult.authToken() + 1;
         Assertions.assertThrows(Exception.class, () -> serverFacade.logout(fakeAuth));
         Assertions.assertDoesNotThrow(() -> serverFacade.logout(registerResult.authToken()));
+    }
+
+    @Test
+    public void positiveListGames() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        String authToken = registerResult.authToken();
+        serverFacade.createGame(authToken, "game name");
+        var listOfGames = serverFacade.listGames(authToken);
+        Assertions.assertDoesNotThrow(() -> serverFacade.listGames(authToken));
+        Assertions.assertNotEquals(null, listOfGames);
+    }
+
+    @Test
+    public void failedListGames() throws ResponseException {
+        Assertions.assertThrows(Exception.class, () -> serverFacade.listGames("123"));
     }
 }
