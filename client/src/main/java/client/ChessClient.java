@@ -6,11 +6,10 @@ import ui.EscapeSequences;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import static java.awt.Color.BLUE;
-
 public class ChessClient {
     private final ServerFacade serverFacade;
     private State state = State.SIGNEDOUT;
+    private String authToken;
 
     public ChessClient(int port){
         serverFacade = new ServerFacade(port);
@@ -21,7 +20,7 @@ public class ChessClient {
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while(!result.equals("quit")){
+        while(!"quit".equals(result)){
             printPrompt();
             String line = scanner.nextLine();
 
@@ -52,12 +51,10 @@ public class ChessClient {
             return switch (cmd) {
                 case "help" -> help();
                 case "quit" -> "quit";
-
+                case "login" -> login(params);
+                case "register" -> register(params);
+                case "logout" -> logout();
                 /**
-                case "login" -> login();
-                case "register" -> register();
-
-                case "logout" -> logout(params);
                 case "create" -> createGame();
                 case "list" -> lisGames(params);
                 case "play" -> playGame(params);
@@ -100,12 +97,45 @@ public class ChessClient {
         }
     }
 
-    public String register(){
-        return "";
+    public String register(String ... params) throws ResponseException{
+        if(params.length == 3){
+            String username = params[0];
+            String password = params[1];
+            String email = params[2];
+
+            var registerResult = serverFacade.register(username, password, email);
+            authToken = registerResult.authToken();
+
+            state = State.SIGNEDIN;
+            return "Successfully Registered. Welcome to chess " + username;
+        }
+        else{
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: <username> <password> <email>");
+        }
     }
 
-    public String login(){
-        return "";
+    public String login(String ... params) throws ResponseException{
+        if(params.length == 2){
+            String username = params[0];
+            String password = params[1];
+
+            var loginResult = serverFacade.login(username, password);
+            authToken = loginResult.authToken();
+
+            state=State.SIGNEDIN;
+            return "Successful Login. Welcome to chess " + username;
+        }
+        else{
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: <username> <password>");
+        }
+    }
+
+    public String logout() throws ResponseException {
+        assertSignedIn();
+        serverFacade.logout(authToken);
+        authToken = null;
+        state = State.SIGNEDOUT;
+        return "Successfully logged out";
     }
 
     private void assertSignedIn() throws ResponseException {
