@@ -115,4 +115,23 @@ public class ServerFacadeTests {
     public void failedCreateGame() throws ResponseException{
         Assertions.assertThrows(Exception.class, () -> serverFacade.createGame("GOCOUGARS", "Minecraft"));
     }
+
+    @Test
+    public void positiveJoinGame() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        CreateGameResult createGameResult = serverFacade.createGame(registerResult.authToken(), "taters");
+        var oldGames = serverFacade.listGames(registerResult.authToken());
+        Assertions.assertDoesNotThrow(() -> serverFacade.joinGame(registerResult.authToken(),
+                "WHITE", createGameResult.gameID()));
+        Assertions.assertNotEquals(oldGames, serverFacade.listGames(registerResult.authToken()));
+    }
+
+    @Test
+    public void failedJoinGame() throws ResponseException{
+        RegisterResult registerResult = serverFacade.register("tate", "password", "novatate@byu.edu");
+        CreateGameResult createGameResult = serverFacade.createGame(registerResult.authToken(), "taters");
+        serverFacade.joinGame(registerResult.authToken(), "WHITE", createGameResult.gameID());
+        Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(registerResult.authToken(),
+                "WHITE", createGameResult.gameID()));
+    }
 }
