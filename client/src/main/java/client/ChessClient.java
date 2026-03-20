@@ -1,6 +1,5 @@
 package client;
 
-import chess.ChessGame;
 import exception.ResponseException;
 import model.GameData;
 import ui.EscapeSequences;
@@ -166,6 +165,9 @@ public class ChessClient {
             + " \n     Black Player: " + game.blackUsername() + "\n\n");
             i++;
         }
+        if(returnVal.isEmpty()){
+            return "No games found.";
+        }
         return returnVal;
     }
 
@@ -173,6 +175,13 @@ public class ChessClient {
         assertSignedIn();
         if(params.length == 2){
             var key = params[0];
+
+            try{
+                Integer.parseInt(key);
+            }catch (NumberFormatException e){
+                throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
+            }
+
             var game = mapOfGames.get(Integer.parseInt(key));
 
             if(game == null){
@@ -192,7 +201,18 @@ public class ChessClient {
         assertSignedIn();
         if(params.length == 1){
             var key = params[0];
+
+            try{
+                Integer.parseInt(key);
+            }catch (NumberFormatException e){
+                throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
+            }
+
             var game = mapOfGames.get(Integer.parseInt(key));
+
+            if(game == null){
+                throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
+            }
             drawBoard("WHITE");
 
         }
