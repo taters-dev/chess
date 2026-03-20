@@ -1,15 +1,19 @@
 package client;
 
 import exception.ResponseException;
+import model.GameData;
 import ui.EscapeSequences;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ChessClient {
     private final ServerFacade serverFacade;
     private State state = State.SIGNEDOUT;
     private String authToken;
+    private Map<Integer, GameData> mapOfGames = new HashMap();
 
     public ChessClient(int port){
         serverFacade = new ServerFacade(port);
@@ -54,12 +58,11 @@ public class ChessClient {
                 case "login" -> login(params);
                 case "register" -> register(params);
                 case "logout" -> logout();
-                /**
-                case "create" -> createGame();
-                case "list" -> lisGames(params);
-                case "play" -> playGame(params);
-                case "observe" -> oberserveGame(params);
-                 **/
+                case "clear" -> clear();
+                case "create" -> createGame(params);
+                case "list" -> listGames();
+                case "join" -> joinGame(params);
+                case "observe" -> observeGame(params);
                 default -> help();
             };
         } catch (Throwable ex) {
@@ -98,7 +101,9 @@ public class ChessClient {
     }
 
     public String register(String ... params) throws ResponseException{
+        assertSignedOut();
         if(params.length == 3){
+            assertSignedOut();
             String username = params[0];
             String password = params[1];
             String email = params[2];
@@ -115,6 +120,7 @@ public class ChessClient {
     }
 
     public String login(String ... params) throws ResponseException{
+        assertSignedOut();
         if(params.length == 2){
             String username = params[0];
             String password = params[1];
@@ -138,9 +144,72 @@ public class ChessClient {
         return "Successfully logged out";
     }
 
+    public String createGame(String ... params) throws ResponseException{
+        assertSignedIn();
+        if(params.length == 1){
+            String gameName = params[0];
+
+            serverFacade.createGame(authToken, gameName);
+            return "Game created: " + gameName;
+        }
+        else{
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: <NAME> ");
+        }
+    }
+
+    public String listGames() throws ResponseException{
+        assertSignedIn();
+        var listGamesResult = serverFacade.listGames(authToken);
+        var games = listGamesResult.games();
+        String returnVal = "";
+        int i = 1;
+        for(var game : games){
+            mapOfGames.put(i, game);
+            returnVal = returnVal.concat(i + " - Game Name: " + game.gameName() + "\n     White Player: " + game.whiteUsername()
+            + " \n     Black Player: " + game.blackUsername() + "\n\n");
+            i++;
+        }
+        return returnVal;
+    }
+
+    public String joinGame(String ... params) throws ResponseException{
+        assertSignedIn();
+        if(params.length == 2){
+            var key = params[0];
+            var game = mapOfGames.get(Integer.parseInt(key));
+            if(game == null){
+                throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
+            }
+
+            serverFacade.joinGame(authToken, params[1].toUpperCase(), game.gameID());
+        }
+        else{
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected: <ID> [WHITE|BLACK]");
+        }
+        return "Game Joined!";
+    }
+
+    public String observeGame(String ... params) throws ResponseException{
+        assertSignedIn();
+        if(params.length == 1){
+            var key = params[0];
+            var game = mapOfGames.get(Integer.parseInt(key));
+        }
+    }
+
+    public String clear() throws ResponseException{
+        serverFacade.clear();
+        return "Clearing Server";
+    }
+
     private void assertSignedIn() throws ResponseException {
         if (state == State.SIGNEDOUT) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
+        }
+    }
+    private void assertSignedOut() throws ResponseException {
+        if(state == State.SIGNEDIN){
+            throw new ResponseException(ResponseException.Code.ClientError, "You must sign out first");
         }
     }
 
