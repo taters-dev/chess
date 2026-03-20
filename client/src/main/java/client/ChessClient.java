@@ -215,6 +215,7 @@ public class ChessClient {
         if(teamColor.equals("BLACK")){
             Collections.reverse(columns);
             Collections.reverse(rows);
+            Collections.reverse(backRow);
         }
 
         printColumnLabels(columns);
