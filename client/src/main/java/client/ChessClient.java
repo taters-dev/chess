@@ -1,13 +1,11 @@
 package client;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import model.GameData;
 import ui.EscapeSequences;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class ChessClient {
     private final ServerFacade serverFacade;
@@ -103,7 +101,6 @@ public class ChessClient {
     public String register(String ... params) throws ResponseException{
         assertSignedOut();
         if(params.length == 3){
-            assertSignedOut();
             String username = params[0];
             String password = params[1];
             String email = params[2];
@@ -177,11 +174,13 @@ public class ChessClient {
         if(params.length == 2){
             var key = params[0];
             var game = mapOfGames.get(Integer.parseInt(key));
+
             if(game == null){
                 throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
             }
 
             serverFacade.joinGame(authToken, params[1].toUpperCase(), game.gameID());
+            drawBoard(params[1].toUpperCase());
         }
         else{
             throw new ResponseException(ResponseException.Code.ClientError, "Expected: <ID> [WHITE|BLACK]");
@@ -194,12 +193,86 @@ public class ChessClient {
         if(params.length == 1){
             var key = params[0];
             var game = mapOfGames.get(Integer.parseInt(key));
+            drawBoard("WHITE");
+
         }
+        return "Observing Game";
     }
 
     public String clear() throws ResponseException{
         serverFacade.clear();
         return "Clearing Server";
+    }
+
+    public void drawBoard(String teamColor){
+        List<Character> columns = new ArrayList<>(List.of('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ));
+        List<Integer> rows = new ArrayList<>(List.of(8, 7, 6, 5, 4, 3, 2, 1));
+        List<Character> backRow = new ArrayList<>(List.of('R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'));
+        List<Character> frontRow = new ArrayList<>(List.of('P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'));
+
+        // go through rows
+
+        if(teamColor.equals("BLACK")){
+            Collections.reverse(columns);
+            Collections.reverse(rows);
+        }
+
+        printColumnLabels(columns);
+
+        for(int i = 0; i < 8; i++){
+            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY+ ' ');
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + rows.get(i));
+            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY+ ' ');
+
+            for(int j = 0; j < 8; j++){
+
+                if((i + j) % 2 == 0){
+                    System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+                }
+                else{
+                    System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+                }
+
+                if(rows.get(i) == 1){
+                    System.out.print(EscapeSequences.SET_TEXT_COLOR_RED);
+                    System.out.print(" " + backRow.get(j) + " ");
+                }
+                else if(rows.get(i) == 2){
+                    System.out.print(EscapeSequences.SET_TEXT_COLOR_RED);
+                    System.out.print(" " + frontRow.get(j) + " ");
+                }
+                else if(rows.get(i) == 7){
+                    System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+                    System.out.print(" " + frontRow.get(j) + " ");
+                }
+                else if(rows.get(i) == 8){
+                    System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+                    System.out.print(" " + backRow.get(j) + " ");
+                }
+                else{
+                    System.out.print(EscapeSequences.EMPTY);
+                }
+
+            }
+
+            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY+ ' ');
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + rows.get(i));
+            System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY+ ' ');
+            System.out.println(EscapeSequences.RESET_BG_COLOR);
+
+        }
+
+        printColumnLabels(columns);
+    }
+
+    public void printColumnLabels(List<Character> columns){
+        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + "   ");
+        for(int i = 0; i < 8; i++){
+            System.out.print(" " +columns.get(i) + " ");
+        }
+        System.out.print("   ");
+        System.out.println(EscapeSequences.RESET_BG_COLOR);
     }
 
     private void assertSignedIn() throws ResponseException {
