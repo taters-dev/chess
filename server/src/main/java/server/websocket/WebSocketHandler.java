@@ -1,4 +1,4 @@
-package server;
+package server.websocket;
 
 public class WebSocketHandler {
 }
