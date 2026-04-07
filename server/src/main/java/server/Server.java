@@ -9,6 +9,7 @@ import dataaccess.sqlaccess.SQLGameDAO;
 import dataaccess.sqlaccess.SQLUserDao;
 import io.javalin.*;
 import model.UserData;
+import server.websocket.WebSocketHandler;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
@@ -38,6 +39,7 @@ public class Server {
         ClearHandler clearHandler = new ClearHandler(clearService);
         UserHandler userHandler = new UserHandler(userService);
         GameHandler gameHandler = new GameHandler(gameService);
+        WebSocketHandler webSocketHandler = new WebSocketHandler(gameDAO, authDAO);
 
         // Register your endpoints and exception handlers here.
         javalin.delete("/db", clearHandler::handleClear);
@@ -48,9 +50,9 @@ public class Server {
         javalin.post("/game", gameHandler::handleCreateGame);
         javalin.put("/game", gameHandler::handleJoinGame);
         javalin.ws("/ws", ws -> {
-            ws.onConnect(wsConnectContext -> {});
-            ws.onMessage(wsMessageContext -> {});
-            ws.onClose(wsCloseContext -> {});
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
         });
 
     }

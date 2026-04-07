@@ -1,14 +1,31 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.AuthDAO;
+import dataaccess.GameDAO;
 import io.javalin.websocket.*;
+import model.AuthData;
+import model.GameData;
+import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+
+import java.io.IOException;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
+    private final GameDAO gameDAO;
+    private final AuthDAO authDAO;
     private final ConnectionManager connections = new ConnectionManager();
 
+    public WebSocketHandler(GameDAO gameDAO, AuthDAO authDAO){
+        this.gameDAO = gameDAO;
+        this.authDAO = authDAO;
+    }
     @Override
     public void handleClose(@NotNull WsCloseContext ctx){
         System.out.println("Websocket closed");
@@ -21,10 +38,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleMessage(@NotNull WsMessageContext ctx){
+    public void handleMessage(@NotNull WsMessageContext ctx) throws Exception{
         UserGameCommand gameCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+
+        String authToken = gameCommand.getAuthToken();
+        int gameID = gameCommand.getGameID();
+        Session session = ctx.session;
+
         switch (gameCommand.getCommandType()){
-            case CONNECT -> enter();
+            case CONNECT -> connect(authToken, gameID, session);
             case LEAVE -> leave();
             case MAKE_MOVE -> makeMove();
             case RESIGN -> resign();
@@ -32,7 +54,44 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     }
 
-    private void enter(){}
+    private void connect(String authToken, int gameID, Session session) throws IOException, Exception {
+
+        AuthData authData = authDAO.getAuth(authToken);
+        GameData gameData = gameDAO.getGame(gameID);
+
+
+        if(authData == null || !authData.authToken().equals(authToken)){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid auth token");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+        }
+        else if(gameData == null || gameData.gameID() != gameID){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Game ID");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+        }
+        else{
+            String user = authData.username();
+            LoadGameMessage loadGameMessage = new LoadGameMessage(gameData.game());
+            NotificationMessage notificationMessage;
+
+            if(user.equals(gameData.whiteUsername())){
+                notificationMessage = new NotificationMessage(user + " joined the game as white player");
+            }
+            else if(user.equals(gameData.blackUsername())){
+                notificationMessage = new NotificationMessage(user + " joined the game as black player");
+            }
+            else{
+                notificationMessage = new NotificationMessage(user + " joined the game as an observer");
+            }
+
+            connections.add(gameID, user, session);
+            connections.sendMessage(gameID, user, loadGameMessage);
+            connections.broadcastMessage(gameID, user, notificationMessage);
+
+
+        }
+    }
     private void leave(){}
     private void makeMove(){}
     private void resign(){}
