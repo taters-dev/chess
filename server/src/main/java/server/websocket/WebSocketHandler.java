@@ -47,14 +47,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         switch (gameCommand.getCommandType()){
             case CONNECT -> connect(authToken, gameID, session);
-            case LEAVE -> leave();
+            case LEAVE -> leave(authToken, gameID, session);
             case MAKE_MOVE -> makeMove();
             case RESIGN -> resign();
         }
 
     }
 
-    private void connect(String authToken, int gameID, Session session) throws IOException, Exception {
+    private void connect(String authToken, int gameID, Session session) throws Exception {
 
         AuthData authData = authDAO.getAuth(authToken);
         GameData gameData = gameDAO.getGame(gameID);
@@ -92,7 +92,49 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         }
     }
-    private void leave(){}
+
+
+    private void leave(String authToken, int gameID, Session session) throws Exception{
+        AuthData authData = authDAO.getAuth(authToken);
+        GameData gameData = gameDAO.getGame(gameID);
+
+        if(authData == null || !authData.authToken().equals(authToken)){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid auth token");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+        }
+        else if(gameData == null || gameData.gameID() != gameID){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Game ID");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+        }
+        else{
+            String user = authData.username();
+            NotificationMessage notificationMessage;
+
+            if(user.equals(gameData.blackUsername())){
+                notificationMessage = new NotificationMessage(user + " black player has left the game");
+                gameData = new GameData(gameID, gameData.whiteUsername(), null,
+                        gameData.gameName(), gameData.game());
+                gameDAO.updateGame(gameData);
+            }
+            else if(user.equals(gameData.whiteUsername())){
+                notificationMessage = new NotificationMessage(user + " white player has left the game");
+                gameData = new GameData(gameID, null, gameData.blackUsername(),
+                        gameData.gameName(), gameData.game());
+                gameDAO.updateGame(gameData);
+            }
+            else{
+                notificationMessage = new NotificationMessage(user + " is no longer observing");
+            }
+
+
+            connections.broadcastMessage(gameID, user, notificationMessage);
+            connections.remove(gameID, user);
+        }
+    }
+
+
     private void makeMove(){}
     private void resign(){}
 }
