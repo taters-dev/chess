@@ -49,7 +49,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             case CONNECT -> connect(authToken, gameID, session);
             case LEAVE -> leave(authToken, gameID, session);
             case MAKE_MOVE -> makeMove();
-            case RESIGN -> resign();
+            case RESIGN -> resign(authToken, gameID, session);
         }
 
     }
@@ -60,17 +60,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         GameData gameData = gameDAO.getGame(gameID);
 
 
-        if(authData == null || !authData.authToken().equals(authToken)){
-            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid auth token");
-            String  msg = new Gson().toJson(errorMessage);
-            session.getRemote().sendString(msg);
-        }
-        else if(gameData == null || gameData.gameID() != gameID){
-            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Game ID");
-            String  msg = new Gson().toJson(errorMessage);
-            session.getRemote().sendString(msg);
-        }
-        else{
+        if(!errorCheck(authData, gameData, session)){
             String user = authData.username();
             LoadGameMessage loadGameMessage = new LoadGameMessage(gameData.game());
             NotificationMessage notificationMessage;
@@ -98,17 +88,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         AuthData authData = authDAO.getAuth(authToken);
         GameData gameData = gameDAO.getGame(gameID);
 
-        if(authData == null || !authData.authToken().equals(authToken)){
-            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid auth token");
-            String  msg = new Gson().toJson(errorMessage);
-            session.getRemote().sendString(msg);
-        }
-        else if(gameData == null || gameData.gameID() != gameID){
-            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Game ID");
-            String  msg = new Gson().toJson(errorMessage);
-            session.getRemote().sendString(msg);
-        }
-        else{
+       if(!errorCheck(authData, gameData, session)){
             String user = authData.username();
             NotificationMessage notificationMessage;
 
@@ -135,6 +115,52 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
 
+    private void resign(String authToken, int gameID, Session session) throws Exception{
+        AuthData authData = authDAO.getAuth(authToken);
+        GameData gameData = gameDAO.getGame(gameID);
+
+        if(!errorCheck(authData, gameData, session)){
+            String user = authData.username();
+            if(!user.equals(gameData.whiteUsername()) && !user.equals(gameData.blackUsername())){
+                ErrorMessage errorMessage = new ErrorMessage("Error: Observer cannot resign");
+                connections.sendMessage(gameID, user, errorMessage);
+            }
+            else{
+                ChessGame chessGame = gameData.game();
+                if(!chessGame.isGameOver()){
+                    chessGame.setGameOver(true);
+                    gameDAO.updateGame(gameData);
+
+                    NotificationMessage notificationMessage = new NotificationMessage(user +
+                            " has resigned from the game");
+                    connections.sendMessage(gameID, user, notificationMessage);
+                    connections.broadcastMessage(gameID, user, notificationMessage);
+                }
+                else{
+                    ErrorMessage errorMessage = new ErrorMessage("Error: Game is already over");
+                    connections.sendMessage(gameID, user, errorMessage);
+                }
+            }
+        }
+    }
+
+
     private void makeMove(){}
-    private void resign(){}
+
+
+    private boolean errorCheck(AuthData authData, GameData gameData, Session session) throws Exception{
+        if(authData == null){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid auth token");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+            return true;
+        }
+        else if(gameData == null){
+            ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Game ID");
+            String  msg = new Gson().toJson(errorMessage);
+            session.getRemote().sendString(msg);
+            return true;
+        }
+        return false;
+    }
 }

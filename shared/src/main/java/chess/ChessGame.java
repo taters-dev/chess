@@ -3,7 +3,6 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -15,11 +14,13 @@ import java.util.Set;
 public class ChessGame {
     private ChessBoard board;
     private TeamColor teamTurn;
+    private boolean gameOver = false;
 
     public ChessGame() {
         this.board = new ChessBoard();
         this.board.resetBoard();
         this.teamTurn = TeamColor.WHITE;
+        this.gameOver = gameOver;
     }
 
     /**
@@ -37,6 +38,14 @@ public class ChessGame {
 
     public void setTeamTurn(TeamColor team) {
        this.teamTurn = team;
+    }
+
+    public boolean isGameOver(){
+        return this.gameOver;
+    }
+
+    public void setGameOver(boolean result){
+        this.gameOver = result;
     }
 
     @Override
@@ -185,7 +194,11 @@ public class ChessGame {
             return false;
         }
         else {
-            return mateHelper(teamColor);
+            if(mateHelper(teamColor)){
+                gameOver = true;
+                return true;
+            }
+            return false;
         }
     }
 
@@ -201,7 +214,11 @@ public class ChessGame {
             return false;
         }
         else{
-            return mateHelper(teamColor);
+            if(mateHelper(teamColor)){
+                gameOver = true;
+                return true;
+            }
+            return false;
         }
     }
 
