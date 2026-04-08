@@ -26,10 +26,10 @@ public class ServerMessageHandler {
                ChessGame chessGame = ((LoadGameMessage) serverMessage).getGame();
                chessClient.setChessGame(chessGame);
                if(chessClient.getTeamColor() == null){
-                   chessClient.drawBoard("WHITE");
+                   chessClient.drawBoard(ChessGame.TeamColor.WHITE, null, null);
                }
                else{
-                   chessClient.drawBoard(chessClient.getTeamColor().toString());
+                   chessClient.drawBoard(chessClient.getTeamColor(), null, null);
                }
            }
            case NOTIFICATION ->{

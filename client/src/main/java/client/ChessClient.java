@@ -1,9 +1,6 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import client.websocket.ServerMessageHandler;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -87,9 +84,9 @@ public class ChessClient {
                 case "observe" -> observeGame(params);
                 case "redraw" -> redraw();
                 case "leave" -> leave();
-                case "move" -> move();
+                case "move" -> move(params);
                 case "resign" -> resign();
-                case "highlight" -> highlight();
+                case "highlight" -> highlight(params);
                 default -> help();
             };
         } catch (Throwable ex) {
@@ -133,11 +130,11 @@ public class ChessClient {
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- redraw board upon request\n" +
                     EscapeSequences.SET_TEXT_COLOR_BLUE + "leave " +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- return to lobby\n" +
-                    EscapeSequences.SET_TEXT_COLOR_BLUE + "move " +
-                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- make your move\n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "move <START> <END>" +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- make your move \n" +
                     EscapeSequences.SET_TEXT_COLOR_BLUE + "resign " +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- do you want to forfeit the game [Y|N]? \n" +
-                    EscapeSequences.SET_TEXT_COLOR_BLUE + "highlight " +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "highlight <POSITION> " +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- highlight all legal moves\n";
 
         }
@@ -293,12 +290,12 @@ public class ChessClient {
         return "Clearing Server";
     }
 
-    public void drawBoard(String teamColor){
+    public void drawBoard(ChessGame.TeamColor teamColor, Collection validMoves, ChessPosition highlightedPos){
         List<Character> columns = new ArrayList<>(List.of('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ));
         List<Integer> rows = new ArrayList<>(List.of(8, 7, 6, 5, 4, 3, 2, 1));
         ChessBoard chessBoard = chessGame.getBoard();
 
-        if(teamColor.equals("BLACK")){
+        if(teamColor == ChessGame.TeamColor.BLACK){
             Collections.reverse(columns);
             Collections.reverse(rows);
         }
@@ -312,15 +309,33 @@ public class ChessClient {
             System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY+ ' ');
 
             for(int j = 0; j < 8; j++){
+                ChessPosition currPosition = new ChessPosition(rows.get(i), columns.get(j) - 'a' + 1);
 
                 if((i + j) % 2 == 0){
-                    System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+
+                    if(validMoves != null && validMoves.contains(currPosition)){
+                        System.out.print(EscapeSequences.SET_BG_COLOR_GREEN);
+                    }
+                    else if(currPosition.equals(highlightedPos)){
+                        System.out.print(EscapeSequences.SET_BG_COLOR_YELLOW);
+                    }
+                    else{
+                        System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY);
+                    }
                 }
                 else{
-                    System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+                    if(validMoves != null && validMoves.contains(currPosition)){
+                        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN);
+                    }
+                    else if(currPosition.equals(highlightedPos)){
+                        System.out.print(EscapeSequences.SET_BG_COLOR_YELLOW);
+                    }
+                    else{
+                        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+                    }
                 }
 
-                ChessPosition currPosition = new ChessPosition(rows.get(i), columns.get(j) - 'a' + 1);
+
                 ChessPiece currPiece = chessBoard.getPiece(currPosition);
                 if(currPiece != null){
                     drawCorrectCharacter(currPiece);
@@ -360,23 +375,124 @@ public class ChessClient {
         }
     }
 
-    public String redraw(){
+    public String redraw() throws Exception{
+        assertInGame();
+        drawBoard(teamColor, null, null);
+        return "Board Redrawn";
+    }
+
+    public String leave() throws Exception{
+        assertInGame();
+        webSocketFacade.leave(authToken, gameID);
+        state = State.SIGNEDIN;
+        chessGame = null;
+        gameID = 0;
+        teamColor = null;
+        return "Returned to lobby";
+    }
+
+    public String move(String ... params) throws  Exception{
+        assertInGame();
+        if(params.length > 2 || params.length < 2){
+            return "Expected: <START> <END>";
+        }
+        char startRowChar= params[0].charAt(1);
+        char startColumnChar = params[0].charAt(0);
+        char endRowChar = params[1].charAt(1);
+        char endColumnChar = params[1].charAt(0);
+
+        int startRow = Character.getNumericValue(startRowChar);
+        int startColumn = startColumnChar - 'a' + 1;
+        int endRow = Character.getNumericValue(endRowChar);
+        int endColumn = endColumnChar - 'a' + 1;
+
+        if(startRow < 1 || startRow > 8 || startColumn < 1 || startColumn > 8 || endRow < 1 || endRow > 8 ||
+                endColumn < 1 || endColumn >  8){
+            return "Please valid positions on the board";
+        }
+
+        ChessPosition startPosition = new ChessPosition(startRow, startColumn);
+        ChessPosition endPosition = new ChessPosition(endRow, endColumn);
+        ChessMove chessMove;
+
+        if(chessGame.getBoard().getPiece(startPosition) == null){
+            return "Please select a valid piece";
+        }
+        else if(chessGame.getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN
+                && (endPosition.getRow() == 1 || endPosition.getRow() == 8)){
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Select your promotion piece");
+            String nextLine = scanner.nextLine();
+            Set<String> possiblePromotion = new HashSet<>(List.of("queen", "rook", "bishop", "knight"));
+            while (!possiblePromotion.contains(nextLine.toLowerCase())){
+                System.out.println("Please enter a valid promotion type");
+                nextLine = scanner.nextLine();
+            }
+            ChessPiece.PieceType promotion = promotionHelp(nextLine.toLowerCase());
+            chessMove = new ChessMove(startPosition, endPosition, promotion);
+        }
+        else{
+            chessMove = new ChessMove(startPosition, endPosition, null);
+        }
+
+        webSocketFacade.makeMove(authToken, gameID, chessMove);
         return "";
     }
 
-    public String leave(){
-        return "";
+    public ChessPiece.PieceType promotionHelp(String nextLine){
+        return switch(nextLine){
+            case "queen" -> ChessPiece.PieceType.QUEEN;
+            case "rook" -> ChessPiece.PieceType.ROOK;
+            case "bishop" -> ChessPiece.PieceType.BISHOP;
+            case "knight" -> ChessPiece.PieceType.KNIGHT;
+            default -> ChessPiece.PieceType.PAWN;
+        };
     }
 
-    public String move(){
-        return "";
+    public String resign(String ... params) throws Exception{
+        assertInGame();
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Confirm if you want to forfeit [Y | N]");
+        String nextLine = scanner.nextLine();
+        if(nextLine.toLowerCase().equals("y") && nextLine.toLowerCase().equals("n")){
+            throw new ResponseException(ResponseException.Code.ClientError, "Expected [Y | N]");
+        }
+        else if(nextLine.toLowerCase().equals("y")){
+            webSocketFacade.resign(authToken, gameID);
+            return "You forfeit the game";
+        }
+        else if( nextLine.toLowerCase().equals("n")){
+            return "";
+        }
+        return "The game will continue";
     }
 
-    public String resign(){
-        return "";
-    }
+    public String highlight(String ... params){
+        if(params.length != 1){
+            return "Expected <POSITION>";
+        }
 
-    public String highlight(){
+        char rowChar= params[0].charAt(1);
+        char columnChar = params[0].charAt(0);
+
+        int row = Character.getNumericValue(rowChar);
+        int column = columnChar - 'a' + 1;
+
+        if(row < 1 || row > 8 || column < 1 || column > 8){
+            return "Please a valid position on the board";
+        }
+
+        ChessPosition chessPosition = new ChessPosition(row, column);
+        var validMoves = chessGame.validMoves(chessPosition);
+        Set<ChessPosition> valid = new HashSet<>();
+
+        for(ChessMove move : validMoves){
+            valid.add(move.getEndPosition());
+        }
+
+        drawBoard(teamColor, valid, chessPosition);
+
         return "";
     }
 

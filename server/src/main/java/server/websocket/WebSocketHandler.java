@@ -177,15 +177,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
             else{
                 if(!user.equals(gameData.blackUsername()) && !user.equals(gameData.whiteUsername())){
-                    ErrorMessage errorMessage = new ErrorMessage("Error: Observer cannot make move");
+                    ErrorMessage errorMessage = new ErrorMessage(" Error: Observer cannot make move");
                     connections.sendMessage(gameID, user, errorMessage);
                 }
                 else if(!validMove){
-                    ErrorMessage errorMessage = new ErrorMessage("Error: Invalid Move");
+                    ErrorMessage errorMessage = new ErrorMessage(" Error: Invalid Move");
                     connections.sendMessage(gameID, user, errorMessage);
                 }
                 else{
-                    ErrorMessage errorMessage = new ErrorMessage("Error: Not your turn");
+                    ErrorMessage errorMessage = new ErrorMessage(" Error: Not your turn");
                     connections.sendMessage(gameID, user, errorMessage);
                 }
             }
@@ -218,8 +218,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         gameDAO.updateGame(gameData);
 
         LoadGameMessage loadGameMessage = new LoadGameMessage(game);
-        NotificationMessage notificationMessage = new NotificationMessage(user + " made move to " +
-                chessMove.getEndPosition());
+        NotificationMessage notificationMessage = new NotificationMessage(user + " made their move");
 
         connections.broadcastMessage(gameID, null, loadGameMessage);
         connections.broadcastMessage(gameID, user, notificationMessage);
