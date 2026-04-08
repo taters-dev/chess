@@ -54,7 +54,6 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition){
         ChessPiece piece = board.getPiece(myPosition);
-        System.out.println((piece));
         if(piece == null){
             throw new RuntimeException("NULL");
         }
