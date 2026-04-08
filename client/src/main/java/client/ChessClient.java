@@ -1,6 +1,9 @@
 package client;
 
+import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import client.websocket.ServerMessageHandler;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -24,6 +27,15 @@ public class ChessClient {
     public ChessClient(int port) throws  Exception{
         serverFacade = new ServerFacade(port);
         this.port = port;
+        this.teamColor = ChessGame.TeamColor.WHITE;
+    }
+
+    public void setChessGame(ChessGame chessGame) {
+        this.chessGame = chessGame;
+    }
+
+    public ChessGame.TeamColor getTeamColor() {
+        return teamColor;
     }
 
     public void run() {
@@ -224,7 +236,7 @@ public class ChessClient {
 
             serverFacade.joinGame(authToken, params[1].toUpperCase(), game.gameID());
 
-            this.serverMessageHandler = new ServerMessageHandler();
+            this.serverMessageHandler = new ServerMessageHandler(this);
             this.webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
 
 
@@ -239,7 +251,6 @@ public class ChessClient {
 
             gameID = game.gameID();
             state = State.INGAME;
-            drawBoard(params[1].toUpperCase());
         }
         else{
             throw new ResponseException(ResponseException.Code.ClientError, "Expected: <ID> [WHITE|BLACK]");
@@ -264,9 +275,8 @@ public class ChessClient {
                 throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
             }
 
-            drawBoard("WHITE");
 
-            serverMessageHandler = new ServerMessageHandler();
+            serverMessageHandler = new ServerMessageHandler(this);
             webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
 
             webSocketFacade.connect(authToken, game.gameID());
@@ -286,17 +296,14 @@ public class ChessClient {
     public void drawBoard(String teamColor){
         List<Character> columns = new ArrayList<>(List.of('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ));
         List<Integer> rows = new ArrayList<>(List.of(8, 7, 6, 5, 4, 3, 2, 1));
-        List<Character> backRow = new ArrayList<>(List.of('R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'));
-        List<Character> frontRow = new ArrayList<>(List.of('P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'));
-
-        // go through rows
+        ChessBoard chessBoard = chessGame.getBoard();
 
         if(teamColor.equals("BLACK")){
             Collections.reverse(columns);
             Collections.reverse(rows);
-            Collections.reverse(backRow);
         }
 
+        System.out.println();
         printColumnLabels(columns);
 
         for(int i = 0; i < 8; i++){
@@ -313,24 +320,13 @@ public class ChessClient {
                     System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
                 }
 
-                if(rows.get(i) == 1){
-                    System.out.print(EscapeSequences.SET_TEXT_COLOR_RED);
-                    System.out.print(" " + backRow.get(j) + " ");
-                }
-                else if(rows.get(i) == 2){
-                    System.out.print(EscapeSequences.SET_TEXT_COLOR_RED);
-                    System.out.print(" " + frontRow.get(j) + " ");
-                }
-                else if(rows.get(i) == 7){
-                    System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
-                    System.out.print(" " + frontRow.get(j) + " ");
-                }
-                else if(rows.get(i) == 8){
-                    System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
-                    System.out.print(" " + backRow.get(j) + " ");
+                ChessPosition currPosition = new ChessPosition(rows.get(i), columns.get(j) - 'a' + 1);
+                ChessPiece currPiece = chessBoard.getPiece(currPosition);
+                if(currPiece != null){
+                    drawCorrectCharacter(currPiece);
                 }
                 else{
-                    System.out.print(EscapeSequences.EMPTY);
+                    System.out.print("   ");
                 }
 
             }
@@ -343,6 +339,25 @@ public class ChessClient {
         }
 
         printColumnLabels(columns);
+    }
+
+    public void drawCorrectCharacter(ChessPiece piece){
+
+        if(piece.getTeamColor() == ChessGame.TeamColor.WHITE){
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_RED);
+        }
+        else{
+            System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+        }
+
+        switch (piece.getPieceType()){
+            case KING -> System.out.print(" K ");
+            case PAWN -> System.out.print(" P ");
+            case ROOK -> System.out.print(" R ");
+            case QUEEN -> System.out.print(" Q ");
+            case BISHOP -> System.out.print(" B ");
+            case KNIGHT -> System.out.print(" N ");
+        }
     }
 
     public String redraw(){
@@ -386,7 +401,7 @@ public class ChessClient {
         }
     }
 
-    private void asserInGame() throws Exception{
+    private void assertInGame() throws Exception{
         if(state != State.INGAME){
             throw new ResponseException(ResponseException.Code.ClientError, "You must be in game");
         }
