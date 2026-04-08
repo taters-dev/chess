@@ -6,7 +6,6 @@ import client.websocket.WebSocketFacade;
 import exception.ResponseException;
 import model.GameData;
 import ui.EscapeSequences;
-
 import java.util.*;
 
 public class ChessClient {
@@ -37,13 +36,11 @@ public class ChessClient {
 
     public void run() {
         System.out.println("Welcome to chess. Type help to get started");
-
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while(!"quit".equals(result)){
             printPrompt();
             String line = scanner.nextLine();
-
             try{
                 result = eval(line);
                 System.out.println(result);
@@ -72,22 +69,10 @@ public class ChessClient {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "help" -> help();
-                case "quit" -> "quit";
-                case "login" -> login(params);
-                case "register" -> register(params);
-                case "logout" -> logout();
-                case "clear" -> clear();
-                case "create" -> createGame(params);
-                case "list" -> listGames();
-                case "join" -> joinGame(params);
-                case "observe" -> observeGame(params);
-                case "redraw" -> redraw();
-                case "leave" -> leave();
-                case "move" -> move(params);
-                case "resign" -> resign();
-                case "highlight" -> highlight(params);
-                default -> help();
+                case "help" -> help(); case "quit" -> "quit"; case "login" -> login(params); case "register" -> register(params);
+                case "logout" -> logout(); case "clear" -> clear(); case "create" -> createGame(params); case "list" -> listGames();
+                case "join" -> joinGame(params); case "observe" -> observeGame(params); case "redraw" -> redraw(); case "leave" -> leave();
+                case "move" -> move(params); case "resign" -> resign(); case "highlight" -> highlight(params); default -> help();
             };
         } catch (Throwable ex) {
             return ex.getMessage();
@@ -236,7 +221,6 @@ public class ChessClient {
             this.serverMessageHandler = new ServerMessageHandler(this);
             this.webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
 
-
             webSocketFacade.connect(authToken, game.gameID());
 
             if(params[1].toUpperCase().equals("WHITE")){
@@ -271,7 +255,6 @@ public class ChessClient {
             if(game == null){
                 throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
             }
-
 
             serverMessageHandler = new ServerMessageHandler(this);
             webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
@@ -366,12 +349,8 @@ public class ChessClient {
         }
 
         switch (piece.getPieceType()){
-            case KING -> System.out.print(" K ");
-            case PAWN -> System.out.print(" P ");
-            case ROOK -> System.out.print(" R ");
-            case QUEEN -> System.out.print(" Q ");
-            case BISHOP -> System.out.print(" B ");
-            case KNIGHT -> System.out.print(" N ");
+            case KING -> System.out.print(" K "); case PAWN -> System.out.print(" P "); case ROOK -> System.out.print(" R ");
+            case QUEEN -> System.out.print(" Q "); case BISHOP -> System.out.print(" B "); case KNIGHT -> System.out.print(" N ");
         }
     }
 
@@ -434,19 +413,15 @@ public class ChessClient {
         else{
             chessMove = new ChessMove(startPosition, endPosition, null);
         }
-
         webSocketFacade.makeMove(authToken, gameID, chessMove);
         return "";
     }
 
     public ChessPiece.PieceType promotionHelp(String nextLine){
         return switch(nextLine){
-            case "queen" -> ChessPiece.PieceType.QUEEN;
-            case "rook" -> ChessPiece.PieceType.ROOK;
-            case "bishop" -> ChessPiece.PieceType.BISHOP;
-            case "knight" -> ChessPiece.PieceType.KNIGHT;
-            default -> ChessPiece.PieceType.PAWN;
-        };
+            case "queen" -> ChessPiece.PieceType.QUEEN; case "rook" -> ChessPiece.PieceType.ROOK;
+            case "bishop" -> ChessPiece.PieceType.BISHOP; case "knight" -> ChessPiece.PieceType.KNIGHT;
+            default -> ChessPiece.PieceType.PAWN;};
     }
 
     public String resign(String ... params) throws Exception{
@@ -475,7 +450,6 @@ public class ChessClient {
 
         char rowChar= params[0].charAt(1);
         char columnChar = params[0].charAt(0);
-
         int row = Character.getNumericValue(rowChar);
         int column = columnChar - 'a' + 1;
 
@@ -522,5 +496,4 @@ public class ChessClient {
             throw new ResponseException(ResponseException.Code.ClientError, "You must be in game");
         }
     }
-
 }
