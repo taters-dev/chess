@@ -208,9 +208,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 NotificationMessage notificationMessage = new NotificationMessage("STALEMATE!");
                 connections.broadcastMessage(gameID, null, notificationMessage);
             }
-            else if(game.isGameOver()){
-                System.out.println("YOOOOO");
-            }
         }
 
     }

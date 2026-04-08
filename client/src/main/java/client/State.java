@@ -1,3 +1,3 @@
 package client;
 
-public enum State {SIGNEDOUT, SIGNEDIN}
+public enum State {SIGNEDOUT, SIGNEDIN, INGAME}

@@ -1,5 +1,8 @@
 package client;
 
+import chess.ChessGame;
+import client.websocket.ServerMessageHandler;
+import client.websocket.WebSocketFacade;
 import exception.ResponseException;
 import model.GameData;
 import ui.EscapeSequences;
@@ -8,12 +11,19 @@ import java.util.*;
 
 public class ChessClient {
     private final ServerFacade serverFacade;
+    private WebSocketFacade webSocketFacade;
+    private ServerMessageHandler serverMessageHandler;
     private State state = State.SIGNEDOUT;
     private String authToken;
     private Map<Integer, GameData> mapOfGames = new HashMap();
+    private int port;
+    private int gameID;
+    private ChessGame.TeamColor teamColor;
+    private ChessGame chessGame;
 
-    public ChessClient(int port){
+    public ChessClient(int port) throws  Exception{
         serverFacade = new ServerFacade(port);
+        this.port = port;
     }
 
     public void run() {
@@ -42,6 +52,9 @@ public class ChessClient {
         if(state.equals(State.SIGNEDIN)){
             System.out.print("[LOGGEDIN] >>>");
         }
+        if(state.equals(State.INGAME)){
+            System.out.print("[INGAME] >>>");
+        }
     }
 
     public String eval(String input) {
@@ -60,6 +73,11 @@ public class ChessClient {
                 case "list" -> listGames();
                 case "join" -> joinGame(params);
                 case "observe" -> observeGame(params);
+                case "redraw" -> redraw();
+                case "leave" -> leave();
+                case "move" -> move();
+                case "resign" -> resign();
+                case "highlight" -> highlight();
                 default -> help();
             };
         } catch (Throwable ex) {
@@ -79,7 +97,7 @@ public class ChessClient {
                     EscapeSequences.SET_TEXT_COLOR_BLUE + "help" +
                             EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
         }
-        else{
+        else if(state == State.SIGNEDIN){
             return EscapeSequences.SET_TEXT_COLOR_BLUE + "create <NAME>" +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + " - a game\n" +
                     EscapeSequences.SET_TEXT_COLOR_BLUE + "list" +
@@ -94,6 +112,22 @@ public class ChessClient {
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- playing chess\n" +
                     EscapeSequences.SET_TEXT_COLOR_BLUE + "help " +
                     EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
+        }
+        else{
+            return
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "help " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "redraw " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- redraw board upon request\n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "leave " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- return to lobby\n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "move " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- make your move\n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "resign " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- do you want to forfeit the game [Y|N]? \n" +
+                    EscapeSequences.SET_TEXT_COLOR_BLUE + "highlight " +
+                    EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- highlight all legal moves\n";
+
         }
     }
 
@@ -171,7 +205,7 @@ public class ChessClient {
         return returnVal;
     }
 
-    public String joinGame(String ... params) throws ResponseException{
+    public String joinGame(String ... params) throws Exception{
         assertSignedIn();
         if(params.length == 2){
             var key = params[0];
@@ -189,6 +223,22 @@ public class ChessClient {
             }
 
             serverFacade.joinGame(authToken, params[1].toUpperCase(), game.gameID());
+
+            this.serverMessageHandler = new ServerMessageHandler();
+            this.webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
+
+
+            webSocketFacade.connect(authToken, game.gameID());
+
+            if(params[1].toUpperCase().equals("WHITE")){
+                teamColor = ChessGame.TeamColor.WHITE;
+            }
+            else{
+                teamColor = ChessGame.TeamColor.BLACK;
+            }
+
+            gameID = game.gameID();
+            state = State.INGAME;
             drawBoard(params[1].toUpperCase());
         }
         else{
@@ -197,7 +247,7 @@ public class ChessClient {
         return "Game Joined!";
     }
 
-    public String observeGame(String ... params) throws ResponseException{
+    public String observeGame(String ... params) throws Exception{
         assertSignedIn();
         if(params.length == 1){
             var key = params[0];
@@ -213,7 +263,16 @@ public class ChessClient {
             if(game == null){
                 throw new ResponseException(ResponseException.Code.ClientError, "Enter a valid gameID");
             }
+
             drawBoard("WHITE");
+
+            serverMessageHandler = new ServerMessageHandler();
+            webSocketFacade = new WebSocketFacade(port, serverMessageHandler);
+
+            webSocketFacade.connect(authToken, game.gameID());
+            state = State.INGAME;
+            teamColor = null;
+            gameID = game.gameID();
 
         }
         return "Observing Game";
@@ -286,6 +345,26 @@ public class ChessClient {
         printColumnLabels(columns);
     }
 
+    public String redraw(){
+        return "";
+    }
+
+    public String leave(){
+        return "";
+    }
+
+    public String move(){
+        return "";
+    }
+
+    public String resign(){
+        return "";
+    }
+
+    public String highlight(){
+        return "";
+    }
+
     public void printColumnLabels(List<Character> columns){
         System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
         System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE + "   ");
@@ -297,13 +376,19 @@ public class ChessClient {
     }
 
     private void assertSignedIn() throws ResponseException {
-        if (state == State.SIGNEDOUT) {
+        if (state != State.SIGNEDIN) {
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign in");
         }
     }
     private void assertSignedOut() throws ResponseException {
-        if(state == State.SIGNEDIN){
+        if(state != State.SIGNEDOUT){
             throw new ResponseException(ResponseException.Code.ClientError, "You must sign out first");
+        }
+    }
+
+    private void asserInGame() throws Exception{
+        if(state != State.INGAME){
+            throw new ResponseException(ResponseException.Code.ClientError, "You must be in game");
         }
     }
 
