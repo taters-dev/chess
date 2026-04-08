@@ -170,26 +170,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             else if(gameData.whiteUsername().equals(user) && turn == ChessGame.TeamColor.WHITE && validMove){
-                game.makeMove(chessMove);
-                gameDAO.updateGame(gameData);
-
-                LoadGameMessage loadGameMessage = new LoadGameMessage(game);
-                NotificationMessage notificationMessage = new NotificationMessage(user + " made move to " +
-                        chessMove.getEndPosition());
-
-                connections.broadcastMessage(gameID, null, loadGameMessage);
-                connections.broadcastMessage(gameID, user, notificationMessage);
+                moveHelper(chessMove, game, gameData, user);
             }
             else if(gameData.blackUsername().equals(user) && turn == ChessGame.TeamColor.BLACK && validMove){
-                game.makeMove(chessMove);
-                gameDAO.updateGame(gameData);
-
-                LoadGameMessage loadGameMessage = new LoadGameMessage(game);
-                NotificationMessage notificationMessage = new NotificationMessage(user + " made move to " +
-                        chessMove.getEndPosition());
-
-                connections.broadcastMessage(gameID, null, loadGameMessage);
-                connections.broadcastMessage(gameID, user, notificationMessage);
+                moveHelper(chessMove, game, gameData, user);
             }
             else{
                 if(!user.equals(gameData.blackUsername()) && !user.equals(gameData.whiteUsername())){
@@ -229,6 +213,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         }
 
+    }
+
+    private void moveHelper(ChessMove chessMove, ChessGame game, GameData gameData, String user) throws Exception{
+        int gameID = gameData.gameID();
+        game.makeMove(chessMove);
+        gameDAO.updateGame(gameData);
+
+        LoadGameMessage loadGameMessage = new LoadGameMessage(game);
+        NotificationMessage notificationMessage = new NotificationMessage(user + " made move to " +
+                chessMove.getEndPosition());
+
+        connections.broadcastMessage(gameID, null, loadGameMessage);
+        connections.broadcastMessage(gameID, user, notificationMessage);
     }
 
 
