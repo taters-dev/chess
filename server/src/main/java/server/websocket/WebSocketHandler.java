@@ -157,56 +157,67 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
 
 
-        if(!errorCheck(authData, gameData, session)){
+        if(!errorCheck(authData, gameData, session)) {
             String user = authData.username();
             ChessGame game = gameData.game();
             chess.ChessGame.TeamColor turn = game.getTeamTurn();
             var moves = game.validMoves(chessMove.getStartPosition());
-            boolean validMove = moves.contains(chessMove);
 
-            if(gameData.game().isGameOver()){
-                ErrorMessage errorMessage = new ErrorMessage("Game is already over");
-                connections.sendMessage(gameID,user, errorMessage);
-            }
+            if (moves != null) {
 
-            else if(gameData.whiteUsername().equals(user) && turn == ChessGame.TeamColor.WHITE && validMove){
-                moveHelper(chessMove, game, gameData, user);
-            }
-            else if(gameData.blackUsername().equals(user) && turn == ChessGame.TeamColor.BLACK && validMove){
-                moveHelper(chessMove, game, gameData, user);
+                boolean  validMove = moves.contains(chessMove);
+                if (gameData.game().isGameOver()) {
+                    ErrorMessage errorMessage = new ErrorMessage("Game is already over");
+                    connections.sendMessage(gameID, user, errorMessage);
+                    return;
+                } else if (gameData.whiteUsername().equals(user) && turn == ChessGame.TeamColor.WHITE && validMove) {
+                    moveHelper(chessMove, game, gameData, user);
+                } else if (gameData.blackUsername().equals(user) && turn == ChessGame.TeamColor.BLACK && validMove) {
+                    moveHelper(chessMove, game, gameData, user);
+                } else {
+                    if (!user.equals(gameData.blackUsername()) && !user.equals(gameData.whiteUsername())) {
+                        ErrorMessage errorMessage = new ErrorMessage(" Error: Observer cannot make move");
+                        connections.sendMessage(gameID, user, errorMessage);
+                        return;
+                    } else if (!validMove) {
+                        ErrorMessage errorMessage = new ErrorMessage(" Error: Invalid Move");
+                        connections.sendMessage(gameID, user, errorMessage);
+                        return;
+                    } else {
+                        ErrorMessage errorMessage = new ErrorMessage(" Error: Not your turn");
+                        connections.sendMessage(gameID, user, errorMessage);
+                        return;
+                    }
+                }
+
+                ChessGame.TeamColor opp = ChessGame.TeamColor.WHITE;
+                if (turn == ChessGame.TeamColor.WHITE) {
+                    opp = ChessGame.TeamColor.BLACK;
+                }
+
+
+                if (game.isInCheckmate(opp)) {
+                    game.setGameOver(true);
+                    gameDAO.updateGame(gameData);
+                    NotificationMessage notificationMessage = new NotificationMessage("CHECKMATE! " + user + " wins!");
+                    connections.broadcastMessage(gameID, null, notificationMessage);
+                    return;
+                } else if (game.isInStalemate(opp)) {
+                    game.setGameOver(true);
+                    gameDAO.updateGame(gameData);
+                    NotificationMessage notificationMessage = new NotificationMessage("STALEMATE!");
+                    connections.broadcastMessage(gameID, null, notificationMessage);
+                    return;
+                } else if (game.isInCheck(opp)) {
+                    NotificationMessage notificationMessage = new NotificationMessage(user + "has their opponent in check");
+                    connections.broadcastMessage(gameID, null, notificationMessage);
+                    return;
+                }
             }
             else{
-                if(!user.equals(gameData.blackUsername()) && !user.equals(gameData.whiteUsername())){
-                    ErrorMessage errorMessage = new ErrorMessage(" Error: Observer cannot make move");
-                    connections.sendMessage(gameID, user, errorMessage);
-                }
-                else if(!validMove){
-                    ErrorMessage errorMessage = new ErrorMessage(" Error: Invalid Move");
-                    connections.sendMessage(gameID, user, errorMessage);
-                }
-                else{
-                    ErrorMessage errorMessage = new ErrorMessage(" Error: Not your turn");
-                    connections.sendMessage(gameID, user, errorMessage);
-                }
-            }
-
-            ChessGame.TeamColor opp = ChessGame.TeamColor.WHITE;
-            if(turn == ChessGame.TeamColor.WHITE){
-                opp = ChessGame.TeamColor.BLACK;
-            }
-
-            if(game.isInCheckmate(opp)){
-                game.setGameOver(true);
-                gameDAO.updateGame(gameData);
-                NotificationMessage notificationMessage = new NotificationMessage("CHECKMATE! " + user + " wins!");
-                connections.broadcastMessage(gameID, null, notificationMessage);
-            }
-
-            else if(game.isInStalemate(opp)){
-                game.setGameOver(true);
-                gameDAO.updateGame(gameData);
-                NotificationMessage notificationMessage = new NotificationMessage("STALEMATE!");
-                connections.broadcastMessage(gameID, null, notificationMessage);
+                ErrorMessage errorMessage = new ErrorMessage(" Error: Invalid move");
+                connections.sendMessage(gameID, user, errorMessage);
+                return;
             }
         }
 
@@ -218,7 +229,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         gameDAO.updateGame(gameData);
 
         LoadGameMessage loadGameMessage = new LoadGameMessage(game);
-        NotificationMessage notificationMessage = new NotificationMessage(user + " made their move");
+        int row = chessMove.getEndPosition().getRow();
+        char column = (char) ('a' + chessMove.getEndPosition().getColumn() - 1);
+        NotificationMessage notificationMessage = new NotificationMessage(user + " made their move to " + column + "" + row);
 
         connections.broadcastMessage(gameID, null, loadGameMessage);
         connections.broadcastMessage(gameID, user, notificationMessage);
